@@ -2,6 +2,7 @@ import { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router";
 import { AdminContext } from "../context/AdminContext";
 import { BANGLADESH_HOSPITALS, BLOOD_GROUPS, POPULAR_LOCATIONS, BANGLADESH_DISTRICTS } from "../data/hospitals";
+import { API_BASE_URL } from "../config/api";
 import {
   ShieldAlert,
   CheckCircle2,
@@ -188,7 +189,7 @@ const DonarForm = () => {
     };
 
     try {
-      const res = await fetch("http://localhost:3000/users", {
+      const res = await fetch(`${API_BASE_URL}/users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { AdminContext } from "../context/AdminContext";
 import CountdownBadge from "./CountdownBadge";
 import { BANGLADESH_HOSPITALS, BLOOD_GROUPS } from "../data/hospitals";
+import { API_BASE_URL } from "../config/api";
 import {
   Shield,
   Users,
@@ -71,8 +72,8 @@ export default function AdminControl() {
       setLoading(true);
 
       const [candRes, appRes] = await Promise.all([
-        fetch("http://localhost:3000/api/admin/candidates"),
-        fetch("http://localhost:3000/api/admin/approved"),
+        fetch(`${API_BASE_URL}/api/admin/candidates`),
+        fetch(`${API_BASE_URL}/api/admin/approved`),
       ]);
 
       const candData = await candRes.json();
@@ -100,7 +101,7 @@ export default function AdminControl() {
   // Approve a candidate
   const handleApprove = async (id) => {
     try {
-      const res = await fetch(`http://localhost:3000/api/admin/approve/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/approve/${id}`, {
         method: "POST",
       });
       const data = await res.json();
@@ -122,7 +123,7 @@ export default function AdminControl() {
     if (!rejectCandidateId) return;
 
     try {
-      const res = await fetch(`http://localhost:3000/api/admin/reject/${rejectCandidateId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/reject/${rejectCandidateId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reason: rejectionReason }),
@@ -145,7 +146,7 @@ export default function AdminControl() {
   // Toggle or Record Blood Donation for a member
   const handleMarkDonated = async (memberId) => {
     try {
-      const res = await fetch(`http://localhost:3000/api/donor/${memberId}/donated`, {
+      const res = await fetch(`${API_BASE_URL}/api/donor/${memberId}/donated`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notes: "Admin-logged blood donation" }),
@@ -163,7 +164,7 @@ export default function AdminControl() {
   // Reset Cooldown
   const handleResetCooldown = async (memberId) => {
     try {
-      const res = await fetch(`http://localhost:3000/api/donor/${memberId}/reset-cooldown`, {
+      const res = await fetch(`${API_BASE_URL}/api/donor/${memberId}/reset-cooldown`, {
         method: "POST",
       });
       const data = await res.json();
@@ -182,7 +183,7 @@ export default function AdminControl() {
     if (!editMember?._id) return;
 
     try {
-      const res = await fetch(`http://localhost:3000/api/admin/donor/${editMember._id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/donor/${editMember._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editMember),
@@ -207,7 +208,7 @@ export default function AdminControl() {
     }
 
     try {
-      const res = await fetch(`http://localhost:3000/users/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/users/${id}`, {
         method: "DELETE",
       });
       const data = await res.json();
@@ -232,7 +233,7 @@ export default function AdminControl() {
 
     setUpdatingAdmin(true);
     try {
-      const res = await fetch("http://localhost:3000/api/admin/profile", {
+      const res = await fetch(`${API_BASE_URL}/api/admin/profile`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -356,10 +357,10 @@ export default function AdminControl() {
         </div>
 
         {/* Navigation Tabs (Point 9) */}
-        <div className="flex border-b border-zinc-200 bg-white rounded-t-xl px-6 pt-3 gap-4">
+        <div className="flex border-b border-zinc-200 bg-white rounded-t-xl px-4 sm:px-6 pt-3 gap-2 sm:gap-4 overflow-x-auto scrollbar-none whitespace-nowrap">
           <button
             onClick={() => setActiveTab("candidates")}
-            className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-colors duration-150 ${
+            className={`pb-3 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-colors duration-150 shrink-0 ${
               activeTab === "candidates"
                 ? "border-zinc-900 text-zinc-950"
                 : "border-transparent text-zinc-500 hover:text-zinc-800"
@@ -376,7 +377,7 @@ export default function AdminControl() {
 
           <button
             onClick={() => setActiveTab("approved")}
-            className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-colors duration-150 ${
+            className={`pb-3 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-colors duration-150 shrink-0 ${
               activeTab === "approved"
                 ? "border-zinc-900 text-zinc-950"
                 : "border-transparent text-zinc-500 hover:text-zinc-800"
@@ -388,7 +389,7 @@ export default function AdminControl() {
 
           <button
             onClick={() => setActiveTab("settings")}
-            className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-colors duration-150 ${
+            className={`pb-3 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition-colors duration-150 shrink-0 ${
               activeTab === "settings"
                 ? "border-zinc-900 text-zinc-950"
                 : "border-transparent text-zinc-500 hover:text-zinc-800"
@@ -582,8 +583,8 @@ export default function AdminControl() {
                       </div>
 
                       {/* APPROVAL / REJECTION BUTTONS (Points 3, 5, 9) */}
-                      <div className="pt-3 border-t border-slate-200/60 flex items-center justify-between gap-3">
-                        <div className="text-xs text-slate-500">
+                      <div className="pt-3 border-t border-slate-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="text-xs text-slate-500 break-all">
                           Phone: <span className="tabular-nums font-bold text-slate-700">{cand.contact}</span> •
                           Email: {cand.email}
                         </div>
@@ -659,7 +660,7 @@ export default function AdminControl() {
 
             {/* Members Table */}
             <div className="overflow-x-auto">
-              <table className="table table-sm w-full text-xs">
+              <table className="table table-sm w-full min-w-[640px] text-xs">
                 <thead>
                   <tr className="bg-slate-100 text-slate-700 font-bold">
                     <th>Donor</th>
@@ -736,7 +737,7 @@ export default function AdminControl() {
 
                       {/* Admin Actions */}
                       <td className="text-right">
-                        <div className="flex items-center justify-end gap-1">
+                        <div className="flex items-center justify-end gap-1 whitespace-nowrap">
                           {/* Cooldown Toggle */}
                           {member.isAvailable ? (
                             <button
@@ -893,7 +894,7 @@ export default function AdminControl() {
       {/* REJECTION REASON MODAL (Point 5) */}
       {rejectCandidateId && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-red-200">
+          <div className="bg-white rounded-2xl max-w-md w-full max-h-[92vh] overflow-y-auto p-5 sm:p-6 shadow-2xl border border-red-200">
             <h3 className="text-base font-bold text-slate-900 mb-2 flex items-center gap-2">
               <AlertOctagon className="w-5 h-5 text-red-600" />
               Specify Rejection Reason
@@ -960,7 +961,7 @@ export default function AdminControl() {
       {/* EDIT MEMBER MODAL */}
       {editMember && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
+          <div className="bg-white rounded-2xl max-w-lg w-full max-h-[92vh] overflow-y-auto p-5 sm:p-6 shadow-2xl border border-slate-200">
             <div className="flex items-center justify-between pb-3 border-b mb-4">
               <h3 className="text-base font-bold text-slate-900">
                 Edit Member: {editMember.name}

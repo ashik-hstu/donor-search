@@ -14,6 +14,7 @@ import {
   Heart,
 } from "lucide-react";
 import { BLOOD_GROUPS } from "../data/hospitals";
+import { API_BASE_URL } from "../config/api";
 
 const AvailableDonar = () => {
   const [donors, setDonors] = useState([]);
@@ -27,8 +28,8 @@ const AvailableDonar = () => {
       try {
         setLoading(true);
         const [donorsRes, statsRes] = await Promise.all([
-          fetch("http://localhost:3000/api/donors"),
-          fetch("http://localhost:3000/api/donors/stats"),
+          fetch(`${API_BASE_URL}/api/donors`),
+          fetch(`${API_BASE_URL}/api/donors/stats`),
         ]);
         const dData = await donorsRes.json();
         const sData = await statsRes.json();

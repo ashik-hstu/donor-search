@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
 import CountdownBadge from "./CountdownBadge";
 import { BANGLADESH_HOSPITALS, BLOOD_GROUPS, BANGLADESH_DISTRICTS } from "../data/hospitals";
+import { API_BASE_URL } from "../config/api";
 import {
   Search,
   Droplet,
@@ -58,8 +59,8 @@ const SearchDonar = () => {
       setLoading(true);
 
       const [statsRes, donorsRes] = await Promise.all([
-        fetch("http://localhost:3000/api/donors/stats"),
-        fetch("http://localhost:3000/api/donors"),
+        fetch(`${API_BASE_URL}/api/donors/stats`),
+        fetch(`${API_BASE_URL}/api/donors`),
       ]);
 
       const statsData = await statsRes.json();
@@ -721,10 +722,10 @@ const SearchDonar = () => {
                     <div className="p-3.5 bg-zinc-50 border-t border-zinc-200 flex items-center gap-2">
                       <a
                         href={`tel:${donor.contact}`}
-                        className="btn btn-sm flex-1 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-bold gap-1.5"
+                        className="btn btn-sm flex-1 min-w-0 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-bold gap-1.5"
                       >
-                        <Phone className="w-3.5 h-3.5" />
-                        Call {donor.contact}
+                        <Phone className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">Call {donor.contact}</span>
                       </a>
 
                       <a

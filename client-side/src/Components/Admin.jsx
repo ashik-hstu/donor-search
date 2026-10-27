@@ -2,6 +2,7 @@ import { useState, useContext } from "react";
 import { useNavigate } from "react-router";
 import { AdminContext } from "../context/AdminContext";
 import { Shield, Lock, Mail, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { API_BASE_URL } from "../config/api";
 
 const Admin = () => {
   const [email, setEmail] = useState("");
@@ -19,7 +20,7 @@ const Admin = () => {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:3000/api/admin/login", {
+      const res = await fetch(`${API_BASE_URL}/api/admin/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

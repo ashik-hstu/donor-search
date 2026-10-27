@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from "react";
 import { AdminContext } from "../context/AdminContext";
 import CountdownBadge from "./CountdownBadge";
 import { BANGLADESH_HOSPITALS, BLOOD_GROUPS } from "../data/hospitals";
+import { API_BASE_URL } from "../config/api";
 import {
   FileText,
   Clock,
@@ -56,7 +57,7 @@ export default function DonorPortal() {
 
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:3000/api/donors/${donorId}`);
+      const res = await fetch(`${API_BASE_URL}/api/donors/${donorId}`);
       const data = await res.json();
       if (data.success && data.donor) {
         setDonor(data.donor);
@@ -89,7 +90,7 @@ export default function DonorPortal() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:3000/api/donor/login", {
+      const res = await fetch(`${API_BASE_URL}/api/donor/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: loginEmail, password: loginPassword }),
@@ -159,7 +160,7 @@ export default function DonorPortal() {
     };
 
     try {
-      const res = await fetch(`http://localhost:3000/api/donor/${donor._id}/resubmit`, {
+      const res = await fetch(`${API_BASE_URL}/api/donor/${donor._id}/resubmit`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -195,7 +196,7 @@ export default function DonorPortal() {
     setLoading(true);
 
     try {
-      const res = await fetch(`http://localhost:3000/api/donor/${donor._id}/appeal`, {
+      const res = await fetch(`${API_BASE_URL}/api/donor/${donor._id}/appeal`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -232,7 +233,7 @@ export default function DonorPortal() {
 
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/donor/${donor._id}/donated`, {
+      const res = await fetch(`${API_BASE_URL}/api/donor/${donor._id}/donated`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -379,17 +380,17 @@ export default function DonorPortal() {
               </span>
             </div>
 
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-black text-zinc-900">{donor.name}</h1>
-                <span className="text-xs bg-zinc-100 px-2.5 py-0.5 rounded font-semibold text-zinc-700">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl sm:text-2xl font-black text-zinc-900 truncate">{donor.name}</h1>
+                <span className="text-xs bg-zinc-100 px-2.5 py-0.5 rounded font-semibold text-zinc-700 shrink-0">
                   {donor.age} yrs • {donor.gender}
                 </span>
               </div>
-              <p className="text-xs text-zinc-500 mt-0.5">
+              <p className="text-xs text-zinc-500 mt-0.5 break-words">
                 {donor.location} • {donor.hospital}
               </p>
-              <p className="text-xs text-zinc-500 mt-0.5">
+              <p className="text-xs text-zinc-500 mt-0.5 break-all">
                 Email: {donor.email} | Phone: {donor.contact}
               </p>
             </div>
@@ -511,13 +512,13 @@ export default function DonorPortal() {
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-red-200/60 flex items-center justify-between">
+                <div className="pt-2 border-t border-red-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <span className="text-xs text-red-700">
                     If you have resolved the above concern, you may submit an appeal with clarification.
                   </span>
                   <button
                     onClick={() => setIsAppealing(!isAppealing)}
-                    className="btn btn-sm btn-error text-white rounded-xl text-xs font-bold"
+                    className="btn btn-sm btn-error text-white rounded-xl text-xs font-bold shrink-0"
                   >
                     Submit Appeal
                   </button>

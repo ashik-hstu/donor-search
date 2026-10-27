@@ -2,6 +2,7 @@ import { useState, useEffect, useContext, useRef } from "react";
 import { AdminContext } from "../context/AdminContext";
 import { BANGLADESH_HOSPITALS, BLOOD_GROUPS, BANGLADESH_DISTRICTS } from "../data/hospitals";
 import { useCountdown } from "../hooks/useCountdown";
+import { API_BASE_URL } from "../config/api";
 import {
   AlertCircle,
   PlusCircle,
@@ -120,7 +121,7 @@ export default function EmergencyRequests() {
   const fetchRequests = async (isInitial = false) => {
     try {
       if (isInitial) setLoading(true);
-      const res = await fetch("http://localhost:3000/api/requests");
+      const res = await fetch(`${API_BASE_URL}/api/requests`);
       const data = await res.json();
       if (data.success && Array.isArray(data.requests)) {
         setRequests(data.requests);
@@ -143,7 +144,7 @@ export default function EmergencyRequests() {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost:3000/api/requests", {
+      const res = await fetch(`${API_BASE_URL}/api/requests`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -468,15 +469,15 @@ export default function EmergencyRequests() {
                     </div>
                   </div>
 
-                  <div className="pt-3 border-t border-zinc-100 flex items-center gap-2">
-                    <a
-                      href={`tel:${req.contact}`}
-                      className="btn btn-sm flex-1 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-bold gap-1.5"
-                    >
-                      <Phone className="w-3.5 h-3.5" />
-                      Call {req.contact}
-                    </a>
-                  </div>
+                    <div className="pt-3 border-t border-zinc-100 flex items-center gap-2">
+                      <a
+                        href={`tel:${req.contact}`}
+                        className="btn btn-sm flex-1 min-w-0 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-bold gap-1.5"
+                      >
+                        <Phone className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">Call {req.contact}</span>
+                      </a>
+                    </div>
                 </div>
               ))}
             </div>
@@ -489,7 +490,7 @@ export default function EmergencyRequests() {
       {/* POST REQUEST MODAL */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-zinc-200">
+          <div className="bg-white rounded-3xl max-w-lg w-full max-h-[92vh] overflow-y-auto p-5 sm:p-7 shadow-2xl border border-zinc-200">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-100 mb-4">
               <div>
                 <h3 className="text-lg font-bold text-zinc-900">Post Urgent Blood Need</h3>

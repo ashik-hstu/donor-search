@@ -33,7 +33,7 @@ const About = () => {
               Finding compatible blood during urgent surgical operations or traumatic emergencies shouldn't depend on frantic social media posts. Roktika provides a vetted, real-time blood registry connecting patients directly with eligible donors in their hospital vicinity—100% free and voluntary.
             </p>
 
-            <div className="grid grid-cols-2 gap-4 pt-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
               <div className="bg-zinc-50 p-4 rounded-2xl border border-zinc-200">
                 <h4 className="font-bold text-zinc-900 text-sm flex items-center gap-1.5 mb-1">
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />
