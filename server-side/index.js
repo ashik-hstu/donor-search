@@ -8,8 +8,14 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware - allow base64 uploads for medical reports and NID images
-app.use(cors());
+// Middleware - allow CORS & base64 uploads for medical reports and NID images
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+  })
+);
 app.use(express.json({ limit: "30mb" }));
 app.use(express.urlencoded({ extended: true, limit: "30mb" }));
 
@@ -17,18 +23,14 @@ const uri =
   process.env.MONGODB_URI ||
   "mongodb+srv://sourav:Y0MdcKy5Qz2YouYr@cluster0.jmnuuto.mongodb.net/?appName=Cluster0";
 
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  },
-});
-
-let db;
-let usersCollection;
-let adminsCollection;
-let requestsCollection;
+// Global database connection caching for Serverless (Vercel) & traditional environments
+let client = null;
+let clientPromise = null;
+let db = null;
+let usersCollection = null;
+let adminsCollection = null;
+let requestsCollection = null;
+let isMigrated = false;
 
 // Standard 90-day cooldown calculation
 const COOLDOWN_DAYS = 90;
@@ -44,67 +46,90 @@ const calculateCooldown = (lastDonatedDate) => {
   };
 };
 
-async function initDB() {
-  try {
-    await client.connect();
+async function connectDB() {
+  if (db && usersCollection && adminsCollection && requestsCollection) {
+    return { db, usersCollection, adminsCollection, requestsCollection };
+  }
+
+  if (!clientPromise) {
+    client = new MongoClient(uri, {
+      serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+      },
+      maxPoolSize: 10,
+    });
+    clientPromise = client.connect().catch((err) => {
+      clientPromise = null;
+      throw err;
+    });
+  }
+
+  await clientPromise;
+
+  if (!db) {
     db = client.db(process.env.DB_NAME || "myDatabase");
     usersCollection = db.collection("users");
     adminsCollection = db.collection("admins");
     requestsCollection = db.collection("blood_requests");
-
     console.log("Connected to MongoDB successfully!");
-
-    // Ensure default admin exists
-    const adminEmail = process.env.ADMIN_EMAIL || "admin@gmail.com";
-    const existingAdmin = await adminsCollection.findOne({ email: adminEmail });
-    if (!existingAdmin) {
-      await adminsCollection.insertOne({
-        name: process.env.ADMIN_NAME || "Admin",
-        email: adminEmail,
-        password: process.env.ADMIN_PASSWORD || "123456",
-        role: "admin",
-        createdAt: new Date(),
-      });
-      console.log("Default admin created");
-    }
-
-    // Seed / Migrate existing records if they lack modern fields
-    const count = await usersCollection.countDocuments();
-    if (count > 0) {
-      // Update legacy users that have no status
-      await usersCollection.updateMany(
-        { status: { $exists: false } },
-        {
-          $set: {
-            status: "approved",
-            role: "donor",
-            age: 24,
-            gender: "Male",
-            weight: 65,
-            resubmitCount: 0,
-            isAppealed: false,
-            donationCount: 2,
-            lastDonatedAt: null,
-            isAvailable: true,
-            createdAt: new Date(),
-            medicalRecords: {
-              smoking: false,
-              drinking: false,
-              bloodAllergy: false,
-              hivTest: true,
-              hepatitisTest: true,
-              recentTattooOrSurgery: false,
-              chronicDisease: false,
-            },
-          },
-        }
-      );
-    }
-  } catch (err) {
-    console.error("MongoDB init error:", err);
   }
+
+  // Ensure default admin exists and migrate records once
+  if (!isMigrated) {
+    isMigrated = true;
+    try {
+      const adminEmail = process.env.ADMIN_EMAIL || "admin@gmail.com";
+      const existingAdmin = await adminsCollection.findOne({ email: adminEmail });
+      if (!existingAdmin) {
+        await adminsCollection.insertOne({
+          name: process.env.ADMIN_NAME || "Admin",
+          email: adminEmail,
+          password: process.env.ADMIN_PASSWORD || "123456",
+          role: "admin",
+          createdAt: new Date(),
+        });
+        console.log("Default admin created");
+      }
+
+      const count = await usersCollection.countDocuments();
+      if (count > 0) {
+        await usersCollection.updateMany(
+          { status: { $exists: false } },
+          {
+            $set: {
+              status: "approved",
+              role: "donor",
+              age: 24,
+              gender: "Male",
+              weight: 65,
+              resubmitCount: 0,
+              isAppealed: false,
+              donationCount: 2,
+              lastDonatedAt: null,
+              isAvailable: true,
+              createdAt: new Date(),
+              medicalRecords: {
+                smoking: false,
+                drinking: false,
+                bloodAllergy: false,
+                hivTest: true,
+                hepatitisTest: true,
+                recentTattooOrSurgery: false,
+                chronicDisease: false,
+              },
+            },
+          }
+        );
+      }
+    } catch (migErr) {
+      console.error("Migration/Admin setup warning:", migErr.message);
+    }
+  }
+
+  return { db, usersCollection, adminsCollection, requestsCollection };
 }
-initDB();
 
 // ==========================================
 // 1. PUBLIC & AUTH ROUTES
@@ -112,7 +137,26 @@ initDB();
 
 // GET / - Health Check
 app.get("/", (req, res) => {
-  res.send({ status: "ok", message: "Blood Donation Platform API is live!" });
+  res.send({
+    status: "ok",
+    message: "Blood Donation Platform API is live!",
+    database: db ? "connected" : "ready",
+  });
+});
+
+// Middleware: Ensure MongoDB is connected for all subsequent API routes
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error("MongoDB connection failed:", err);
+    res.status(500).json({
+      success: false,
+      message: "Database connection failed",
+      error: err.message,
+    });
+  }
 });
 
 // GET /users - Legacy endpoint used by client router loader
@@ -1016,7 +1060,20 @@ app.delete("/api/requests/:id", async (req, res) => {
   }
 });
 
-// START SERVER
-app.listen(port, () => {
-  console.log(`Blood Donation API Server running on port ${port}`);
-});
+// START SERVER (only listen when running directly, not in Vercel serverless environment)
+if (!process.env.VERCEL) {
+  connectDB()
+    .then(() => {
+      app.listen(port, () => {
+        console.log(`Blood Donation API Server running on port ${port}`);
+      });
+    })
+    .catch((err) => {
+      console.error("Failed to connect to MongoDB on startup:", err);
+      app.listen(port, () => {
+        console.log(`Blood Donation API Server running on port ${port} (DB disconnected)`);
+      });
+    });
+}
+
+export default app;

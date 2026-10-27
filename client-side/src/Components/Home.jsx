@@ -174,7 +174,7 @@ const Home = () => {
           setStats({ totalDonors: d.totalDonors, totalAvailable: avail, totalDonations: d.totalDonations, groups: d.stats });
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   return (
@@ -255,7 +255,7 @@ const Home = () => {
           {/* Linea Riding Caption Chips (animates along ellipse arc) */}
           <div className="hero__chip hero__chip--1 hidden sm:block">
             <div className="m-caption notranslate" translate="no">
-              <span className="m-caption__wave" aria-hidden="true"><i/><i/><i/><i/></span>
+              <span className="m-caption__wave" aria-hidden="true"><i /><i /><i /><i /></span>
               <span className="text-red-600 font-black">Urgent SOS:</span> O- · Dinajpur Sadar (Matched 22m)
             </div>
           </div>
@@ -267,7 +267,7 @@ const Home = () => {
           </div>
           <div className="hero__chip hero__chip--3 hidden sm:block">
             <div className="m-caption-dark notranslate" translate="no">
-              <span className="m-caption__wave" aria-hidden="true"><i/><i/><i/><i/></span>
+              <span className="m-caption__wave" aria-hidden="true"><i /><i /><i /><i /></span>
               <span className="text-red-400 font-bold">ICU Dispatch:</span> M Abdur Rahim Med Confirmed
             </div>
           </div>
@@ -322,8 +322,8 @@ const Home = () => {
             <ul className="flex flex-wrap gap-3">
               {[
                 { icon: ShieldCheck, text: "18–60 Yrs · Lab Screened", color: "#4ade80" },
-                { icon: Clock,       text: "90-Day Cooldown Protocol",  color: "#fbbf24" },
-                { icon: Building2,   text: "Hospital Vicinity Matching", color: "#38bdf8" },
+                { icon: Clock, text: "90-Day Cooldown Protocol", color: "#fbbf24" },
+                { icon: Building2, text: "Hospital Vicinity Matching", color: "#38bdf8" },
               ].map(({ icon: Icon, text, color }) => (
                 <li key={text} className="chip" style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.85)" }}>
                   <Icon className="w-3.5 h-3.5 shrink-0" style={{ color }} />
@@ -337,7 +337,7 @@ const Home = () => {
               <Link to="/searchDonar" className="btn-roktika">
                 <Search className="w-4 h-4 shrink-0" />
                 <span className="btn-label">Find Donors by Blood Group</span>
-                <span className="btn-wave" aria-hidden="true"><i/><i/><i/></span>
+                <span className="btn-wave" aria-hidden="true"><i /><i /><i /></span>
               </Link>
               <Link to="/donarForm" className="btn-outline-roktika" style={{ background: "rgba(255,255,255,0.08)", borderColor: "rgba(255,255,255,0.15)", color: "#fff" }}>
                 <Heart className="w-4 h-4 shrink-0" style={{ color: "#f87171" }} />
@@ -387,9 +387,9 @@ const Home = () => {
               <div className="flex items-center justify-between pb-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
                 <div className="flex items-center gap-1.5 p-1 rounded-2xl" style={{ background: "rgba(255,255,255,0.06)" }}>
                   {[
-                    { id: "story",  label: "Hero Stories", icon: Quote },
-                    { id: "graph",  label: "Speed Graph",  icon: TrendingUp },
-                    { id: "report", label: "Lab Report",   icon: FileText },
+                    { id: "story", label: "Hero Stories", icon: Quote },
+                    { id: "graph", label: "Speed Graph", icon: TrendingUp },
+                    { id: "report", label: "Lab Report", icon: FileText },
                   ].map(({ id, label, icon: Icon }) => (
                     <button
                       key={id}
@@ -614,7 +614,10 @@ const Home = () => {
               </span>
             ))}
           </blockquote>
-          <p className="text-xs sm:text-sm leading-relaxed text-zinc-400 max-w-xl mx-auto">
+          <p
+            className="text-xs sm:text-sm leading-relaxed text-center max-w-2xl text-zinc-400"
+            style={{ marginInline: "auto" }}
+          >
             Governed by WHO transfusion safety protocols with automated 90-day cooldown rest locks and 5-panel pathology screening.
           </p>
         </div>
@@ -896,18 +899,22 @@ const Home = () => {
           {BLOOD_COMPATIBILITY[selectedBlood] && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-5 rounded-2xl" style={{ background: "#fafafa", border: "1px solid var(--border)" }}>
               {[
-                { titleKey: "donate",
+                {
+                  titleKey: "donate",
                   head: <><span className="notranslate font-black" translate="no">{selectedBlood}</span> Can Donate Red Cells To:</>,
                   groups: BLOOD_COMPATIBILITY[selectedBlood].canGiveTo,
                   note: BLOOD_COMPATIBILITY[selectedBlood].isUniversalDonor && "Universal Red Cell Donor (Critical in Trauma Emergency)",
                   chipStyle: { background: "#fef2f2", color: "#991b1b", border: "1px solid #fecaca" },
-                  noteStyle: { background: "#f0fdf4", color: "#14532d", border: "1px solid #bbf7d0" } },
-                { titleKey: "receive",
+                  noteStyle: { background: "#f0fdf4", color: "#14532d", border: "1px solid #bbf7d0" }
+                },
+                {
+                  titleKey: "receive",
                   head: <><span className="notranslate font-black" translate="no">{selectedBlood}</span> Can Safely Receive From:</>,
                   groups: BLOOD_COMPATIBILITY[selectedBlood].canReceiveFrom,
                   note: BLOOD_COMPATIBILITY[selectedBlood].isUniversalRecipient && "Universal Recipient (Can receive from all groups)",
                   chipStyle: { background: "#f4f4f5", color: "#18181b", border: "1px solid #e4e4e7" },
-                  noteStyle: { background: "#f4f4f5", color: "#3f3f46", border: "1px solid #e4e4e7" } },
+                  noteStyle: { background: "#f4f4f5", color: "#3f3f46", border: "1px solid #e4e4e7" }
+                },
               ].map(({ titleKey, head, groups, note, chipStyle, noteStyle }) => (
                 <div key={titleKey} className="bg-white p-5 rounded-2xl space-y-3" style={{ border: "1px solid var(--border)" }}>
                   <span className="text-sm font-bold block" style={{ color: "var(--ink)" }}>{head}</span>
@@ -933,14 +940,22 @@ const Home = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { code: "AGE", title: "Age & Weight Standards",
-                body: "Donors must be 18–60 years of age with minimum body weight of 45 kg (50 kg for 450 mL whole blood)." },
-              { code: "LAB", title: "Mandatory 5-Panel Test",
-                body: "HIV-1/2, Hepatitis B (HBsAg), Hepatitis C (Anti-HCV), Syphilis (VDRL), and Malaria screening required." },
-              { code: "REST", title: "90-Day Medical Cooldown",
-                body: "3-month mandatory rest between donations to allow complete erythrocyte and ferritin replenishment." },
-              { code: "HGB", title: "Hemoglobin Threshold",
-                body: "≥ 12.5 g/dL for female donors and ≥ 13.0 g/dL for male donors to prevent post-donation fatigue." },
+              {
+                code: "AGE", title: "Age & Weight Standards",
+                body: "Donors must be 18–60 years of age with minimum body weight of 45 kg (50 kg for 450 mL whole blood)."
+              },
+              {
+                code: "LAB", title: "Mandatory 5-Panel Test",
+                body: "HIV-1/2, Hepatitis B (HBsAg), Hepatitis C (Anti-HCV), Syphilis (VDRL), and Malaria screening required."
+              },
+              {
+                code: "REST", title: "90-Day Medical Cooldown",
+                body: "3-month mandatory rest between donations to allow complete erythrocyte and ferritin replenishment."
+              },
+              {
+                code: "HGB", title: "Hemoglobin Threshold",
+                body: "≥ 12.5 g/dL for female donors and ≥ 13.0 g/dL for male donors to prevent post-donation fatigue."
+              },
             ].map(({ code, title, body }) => (
               <div key={code} className="p-5 rounded-2xl space-y-3" style={{ background: "#fafafa", border: "1px solid var(--border)" }}>
                 <span className="notranslate text-xs font-black px-2.5 py-1 rounded-lg" translate="no" style={{ background: "#e4e4e7", color: "#52525b" }}>{code}</span>
@@ -964,9 +979,9 @@ const Home = () => {
 
             <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-3">
               {[
-                { title: "Trauma & Surgery",       body: "Cardiac procedures, acute surgical emergencies, and vehicular trauma victims require immediate PRBC support." },
-                { title: "Obstetric Hemorrhage",   body: "Postpartum hemorrhage during childbirth remains a primary cause of maternal mortality without ready blood." },
-                { title: "Hematologic Disorders",  body: "Thalassemia major and aplastic anemia patients require recurring transfusions every 21–28 days." },
+                { title: "Trauma & Surgery", body: "Cardiac procedures, acute surgical emergencies, and vehicular trauma victims require immediate PRBC support." },
+                { title: "Obstetric Hemorrhage", body: "Postpartum hemorrhage during childbirth remains a primary cause of maternal mortality without ready blood." },
+                { title: "Hematologic Disorders", body: "Thalassemia major and aplastic anemia patients require recurring transfusions every 21–28 days." },
               ].map(({ title, body }) => (
                 <div key={title} className="p-5 rounded-2xl space-y-2" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}>
                   <h3 className="text-sm font-bold text-white">{title}</h3>
@@ -986,8 +1001,8 @@ const Home = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
-              { label: "Rapid Plasma Recovery", time: "24 to 48 Hours",   body: "Fluid volume and blood pressure normalize within 48 hours with adequate oral hydration and rest." },
-              { label: "Red Cell Replenishment",  time: "4 to 6 Weeks",   body: "Bone marrow accelerates erythropoiesis, restoring mature erythrocytes without compromising health." },
+              { label: "Rapid Plasma Recovery", time: "24 to 48 Hours", body: "Fluid volume and blood pressure normalize within 48 hours with adequate oral hydration and rest." },
+              { label: "Red Cell Replenishment", time: "4 to 6 Weeks", body: "Bone marrow accelerates erythropoiesis, restoring mature erythrocytes without compromising health." },
               { label: "Safe Sterile Collection", time: "8 to 10 Minutes", body: "Collection is performed using pre-packaged, sterile, single-use vacuum systems under trained clinical staff." },
             ].map(({ label, time, body }) => (
               <div key={label} className="p-5 rounded-2xl space-y-2" style={{ background: "#fafafa", border: "1px solid var(--border)" }}>
