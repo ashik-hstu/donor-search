@@ -5,6 +5,8 @@ import { Droplet, Phone, MapPin, Shield, Mail } from "lucide-react";
 const Root = () => {
   const location = useLocation();
   const isHome = location.pathname === "/";
+  const isAdminLogin = location.pathname === "/admin";
+  const isDarkPage = isHome || isAdminLogin;
 
   return (
     <div
@@ -12,14 +14,18 @@ const Root = () => {
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
-        background: isHome ? "#0c0c0e" : "var(--ground)",
+        background: isDarkPage ? "#09090b" : "var(--ground)",
       }}
     >
       <Navbar />
 
       <main
-        style={{ flex: 1, background: isHome ? "transparent" : "var(--ground)" }}
-        className={isHome ? "" : "pt-16"}
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          background: isDarkPage ? "#09090b" : "transparent",
+        }}
       >
         <Outlet />
       </main>

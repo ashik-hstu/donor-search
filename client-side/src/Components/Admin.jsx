@@ -44,7 +44,7 @@ const Admin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
+    <div className="flex-1 w-full bg-zinc-950 flex items-center justify-center p-4 py-16">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <div className="w-12 h-12 rounded-2xl bg-red-600 text-white flex items-center justify-center mx-auto mb-3">
