@@ -20,6 +20,7 @@ const Root = () => {
       <Navbar />
 
       <main
+        className={isHome ? "" : "pt-16"}
         style={{
           flex: 1,
           display: "flex",

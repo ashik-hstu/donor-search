@@ -18,6 +18,7 @@ import {
 const Navbar = () => {
   const { isAdmin, logoutAdmin, currentDonor, logoutDonor } = useContext(AdminContext);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [donorMenuOpen, setDonorMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleAdminLogout = () => { logoutAdmin(); navigate("/admin"); };
@@ -100,23 +101,41 @@ const Navbar = () => {
             <LanguageToggle />
 
             {currentDonor && (
-              <div className="dropdown dropdown-end">
-                <div
-                  tabIndex={0}
-                  role="button"
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setDonorMenuOpen(!donorMenuOpen)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/15 text-white/80 hover:text-white hover:bg-white/10 text-xs font-medium cursor-pointer transition-colors"
                 >
                   <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="max-w-[90px] truncate">{currentDonor.name}</span>
-                </div>
-                <ul
-                  tabIndex={0}
-                  className="dropdown-content menu p-2 bg-white rounded-2xl w-48 z-50 text-xs border border-zinc-200 mt-2"
-                >
-                  <li className="menu-title text-zinc-400 text-xs">Donor Account</li>
-                  <li><Link to="/donorPortal" className="text-zinc-700">Application &amp; Cooldown</Link></li>
-                  <li><button onClick={logoutDonor} className="text-red-600">Sign Out</button></li>
-                </ul>
+                  <span className="max-w-[100px] truncate">{currentDonor.name}</span>
+                </button>
+                {donorMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-52 rounded-2xl border border-zinc-200 bg-white p-2 shadow-xl z-50 text-xs text-zinc-900 animate-in fade-in zoom-in-95">
+                    <div className="px-2.5 py-1.5 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                      Donor Account
+                    </div>
+                    <Link
+                      to="/donorPortal"
+                      onClick={() => setDonorMenuOpen(false)}
+                      className="flex items-center gap-2 px-2.5 py-2 rounded-xl text-zinc-700 hover:bg-zinc-50 font-medium transition-colors"
+                    >
+                      <FileCheck2 className="w-3.5 h-3.5 text-red-600" />
+                      <span>Application &amp; Cooldown</span>
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDonorMenuOpen(false);
+                        logoutDonor();
+                      }}
+                      className="flex items-center gap-2 w-full text-left px-2.5 py-2 rounded-xl text-red-600 hover:bg-red-50 font-semibold transition-colors mt-1"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 

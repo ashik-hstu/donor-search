@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { BLOOD_GROUPS } from "../data/hospitals";
 import { API_BASE_URL } from "../config/api";
+import { Button, Badge, Card, CardContent, Input } from "./ui";
 
 const AvailableDonar = () => {
   const [donors, setDonors] = useState([]);
@@ -62,10 +63,10 @@ const AvailableDonar = () => {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-red-50 text-red-700 border border-red-200 mb-2">
+          <Badge variant="outline" className="gap-1.5 bg-red-50 text-red-700 border-red-200 mb-2">
             <Heart className="w-3.5 h-3.5 fill-red-600 text-red-600" />
             Verified Donor Directory
-          </span>
+          </Badge>
           <h1 className="text-3xl sm:text-4xl font-black text-zinc-950 tracking-tight">
             Available Blood Donors
           </h1>
@@ -75,33 +76,32 @@ const AvailableDonar = () => {
         </div>
 
         {/* Blood Group Availability Badges */}
-        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-          <button
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
+          <Button
+            size="sm"
+            variant={selectedGroup === "ALL" ? "default" : "outline"}
             onClick={() => setSelectedGroup("ALL")}
-            className={`btn btn-sm rounded-lg font-bold text-xs transition-colors duration-150 ${
-              selectedGroup === "ALL"
-                ? "bg-red-600 text-white"
-                : "bg-white text-zinc-700 hover:bg-zinc-100 border border-zinc-200"
-            }`}
+            className="rounded-xl text-xs font-bold"
           >
             All Donors ({donors.length})
-          </button>
+          </Button>
           {BLOOD_GROUPS.map((grp) => {
             const stat = stats.find((s) => s.group === grp) || { available: 0, total: 0 };
             const isSelected = selectedGroup === grp;
             return (
               <button
                 key={grp}
+                type="button"
                 onClick={() => setSelectedGroup(grp)}
-                className={`btn btn-sm rounded-lg font-bold text-xs transition-colors duration-150 ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer select-none ${
                   isSelected
-                    ? "bg-red-600 text-white"
-                    : "bg-white text-zinc-700 hover:bg-red-50 border border-zinc-200"
+                    ? "bg-red-600 text-white border-red-600 shadow-xs"
+                    : "bg-white text-zinc-700 hover:bg-zinc-50 border-zinc-200 shadow-2xs"
                 }`}
               >
                 <span className="notranslate" translate="no">{grp}</span>
                 <span
-                  className={`badge badge-xs text-[10px] font-bold ${
+                  className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full ${
                     isSelected ? "bg-white text-red-600" : "bg-emerald-100 text-emerald-800"
                   }`}
                 >
@@ -115,13 +115,13 @@ const AvailableDonar = () => {
         {/* Search Bar */}
         <div className="max-w-md mx-auto">
           <div className="relative">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
-            <input
+            <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-3" />
+            <Input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search donor by name, location (e.g. Basher Hut, Dinajpur), or hospital..."
-              className="input input-bordered w-full pl-10 rounded-2xl text-xs sm:text-sm shadow-xs"
+              placeholder="Search by name, location, or hospital..."
+              className="pl-10 rounded-2xl"
             />
           </div>
         </div>
@@ -129,46 +129,56 @@ const AvailableDonar = () => {
         {/* Donor Cards Grid */}
         {loading ? (
           <div className="py-20 text-center">
-            <span className="loading loading-spinner loading-lg text-red-600"></span>
-            <p className="text-xs text-gray-400 mt-2">Loading active donors...</p>
+            <div className="w-8 h-8 border-3 border-red-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p className="text-xs text-zinc-400 mt-3 font-medium">Loading active donors...</p>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="bg-white p-12 text-center rounded-2xl border border-gray-200 shadow-xs max-w-lg mx-auto">
-            <Droplet className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <h3 className="text-base font-bold text-gray-800">No Donors Found</h3>
-            <p className="text-xs text-gray-500 mt-1">
+          <Card className="p-12 text-center max-w-lg mx-auto">
+            <Droplet className="w-12 h-12 text-zinc-300 mx-auto mb-3" />
+            <h3 className="text-base font-bold text-zinc-900">No Donors Found</h3>
+            <p className="text-xs text-zinc-500 mt-1">
               No registered donors match your current search criteria.
             </p>
-          </div>
+          </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filtered.map((donor) => (
-              <div
+              <Card
                 key={donor._id}
-                className="bg-white rounded-xl border border-zinc-200 hover:border-zinc-300 transition-colors duration-150 p-5 flex flex-col justify-between"
+                className="overflow-hidden flex flex-col justify-between hover:border-zinc-300 transition-colors"
               >
-                <div>
-                  {/* Top Bar */}
-                  <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="p-5">
+                  <div className="flex items-start justify-between gap-3 mb-4">
                     <div className="flex items-center gap-3">
-                      {donor.photo ? (
-                        <img
-                          src={donor.photo}
-                          alt={donor.name}
-                          className="w-12 h-12 rounded-lg object-cover border border-zinc-200"
-                        />
-                      ) : (
-                        <div
-                          className="w-12 h-12 rounded-lg bg-red-600 text-white font-extrabold text-lg flex items-center justify-center notranslate"
+                      <div className="relative">
+                        {donor.photo ? (
+                          <img
+                            src={donor.photo}
+                            alt={donor.name}
+                            className="w-12 h-12 rounded-xl object-cover border border-zinc-200"
+                          />
+                        ) : (
+                          <div
+                            className="w-12 h-12 rounded-xl bg-red-600 text-white font-extrabold text-lg flex items-center justify-center notranslate shadow-xs"
+                            translate="no"
+                          >
+                            {donor.group}
+                          </div>
+                        )}
+                        <span
+                          className="absolute -bottom-1 -right-1 bg-zinc-900 text-white text-[9px] font-black px-1.5 py-0.5 rounded notranslate"
                           translate="no"
                         >
                           {donor.group}
-                        </div>
-                      )}
+                        </span>
+                      </div>
+
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <h4 className="text-sm font-bold text-zinc-900">{donor.name}</h4>
-                          <ShieldCheck className="w-4 h-4 text-emerald-600" title="Verified Member" />
+                          <h3 className="font-bold text-zinc-900 text-sm leading-snug">
+                            {donor.name}
+                          </h3>
+                          <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                         </div>
                         <span className="text-xs text-zinc-500">
                           {donor.age} yrs • {donor.gender}
@@ -176,43 +186,42 @@ const AvailableDonar = () => {
                       </div>
                     </div>
 
-                    <span
-                      className="bg-red-50 text-red-700 border border-red-200 font-bold text-xs px-2.5 py-0.5 rounded notranslate"
-                      translate="no"
-                    >
-                      {donor.group}
-                    </span>
+                    <Badge variant="secondary" size="sm">
+                      {donor.donationCount || 0} Donations
+                    </Badge>
                   </div>
 
-                  {/* Location & Hospital Details */}
-                  <div className="bg-zinc-50 p-3 rounded-lg border border-zinc-200/70 space-y-1.5 text-xs text-zinc-600 mb-3">
+                  <div className="space-y-1.5 text-xs text-zinc-600 mb-4 bg-zinc-50 p-3 rounded-xl border border-zinc-200/70">
                     <div className="flex items-center gap-2">
                       <MapPin className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                      <span className="font-medium text-zinc-800">{donor.location}</span>
+                      <span className="font-medium text-zinc-800 truncate">
+                        {donor.location || "Location not specified"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Building2 className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
-                      <span className="text-zinc-600 truncate">{donor.hospital}</span>
+                      <span className="truncate">
+                        {donor.hospital || "Dinajpur Sadar Hospital"}
+                      </span>
                     </div>
                   </div>
 
-                  {/* Cooldown / Availability */}
                   <div className="mb-4">
                     {donor.isAvailable ? (
-                      <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-2.5 flex items-center justify-between text-xs text-emerald-900">
+                      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 flex items-center justify-between text-xs text-emerald-900">
                         <span className="font-bold flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0"></span>
+                          <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0 animate-pulse"></span>
                           Available to Donate
                         </span>
-                        <span className="bg-emerald-700 text-white text-[10px] font-bold px-2 py-0.5 rounded">
+                        <Badge variant="success" size="sm">
                           Ready
-                        </span>
+                        </Badge>
                       </div>
                     ) : (
                       <div>
                         <div className="mb-1 text-[11px] font-bold text-amber-800 flex items-center justify-between">
                           <span>Already Donated (3-Month Rest)</span>
-                          <span className="badge badge-warning badge-xs">Resting</span>
+                          <Badge variant="warning" size="sm">Resting</Badge>
                         </div>
                         <CountdownBadge targetDate={donor.nextEligibleDate} />
                       </div>
@@ -220,27 +229,26 @@ const AvailableDonar = () => {
                   </div>
                 </div>
 
-                {/* Contact Controls */}
-                <div className="pt-3 border-t border-gray-100 flex items-center gap-2">
+                <div className="p-3.5 bg-zinc-50 border-t border-zinc-100 flex items-center gap-2">
                   <a
                     href={`tel:${donor.contact}`}
-                    className="btn btn-sm flex-1 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold gap-1.5"
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 px-4 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-700 text-white transition-colors duration-150 shadow-xs"
                   >
                     <Phone className="w-3.5 h-3.5" />
-                    Call {donor.contact}
+                    <span className="truncate">Call {donor.contact}</span>
                   </a>
 
                   <a
                     href={`https://wa.me/88${donor.contact}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="btn btn-sm btn-outline border-emerald-500 text-emerald-700 hover:bg-emerald-600 hover:text-white rounded-xl text-xs font-bold px-3"
+                    className="inline-flex items-center justify-center h-9 px-3 rounded-xl text-xs font-bold border border-emerald-500 text-emerald-700 hover:bg-emerald-600 hover:text-white transition-colors duration-150"
                     title="WhatsApp"
                   >
                     <MessageCircle className="w-4 h-4" />
                   </a>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         )}
