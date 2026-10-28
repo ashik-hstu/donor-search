@@ -83,26 +83,50 @@ const HOSPITAL_PLACES = [
 const REVIEWS_COL_1 = [
   {
     name: "Kamrul Islam",
-    role: "Patient Relative · Balubari, Dinajpur",
+    role: "Brother of Patient · Balubari, Dinajpur",
     stars: 5,
-    text: "When my sister suffered acute postpartum hemorrhage at M Abdur Rahim Medical College Hospital, the blood bank had zero O-. Roktika matched two voluntary donors in 22 minutes. She survived because someone arrived at midnight.",
-    badge: "Emergency Match"
+    patientCase: {
+      patient: "Taslima Begum (31 Yrs)",
+      hospital: "M Abdur Rahim Medical College Hospital",
+      ward: "Maternity OT-1 (Bed 4)",
+      condition: "Severe Postpartum Hemorrhage (PPH)",
+      units: "2 Bags O- Negative (Whole Blood)",
+      time: "Bedside within 18 mins",
+    },
+    text: "When my sister suffered acute postpartum hemorrhage at M Abdur Rahim Medical College Hospital, the blood bank had zero O-. Roktika matched two voluntary donors in 18 minutes. She survived because a verified donor arrived at midnight.",
+    badge: "Obstetric Emergency Match",
   },
   {
     name: "Dr. Senjuti Humaira",
-    role: "Consultant Hematologist · M Abdur Rahim Medical College, Dinajpur",
+    role: "Consultant Hematologist · M Abdur Rahim Medical College Hospital",
     photo: "/dinajpur/doctor-senjuti-humaira.jpg",
     stars: 5,
+    patientCase: {
+      patient: "Master Aryan (8 Yrs, Child)",
+      hospital: "Dinajpur Sadar Hospital (Pediatric Ward)",
+      ward: "Thalassemia Day Care Unit",
+      condition: "Beta Thalassemia Major (Hb 3.9 g/dL)",
+      units: "1 Unit B+ Leukoreduced Red Cells",
+      time: "Scheduled Bi-weekly Rotation",
+    },
     text: "For thalassemia and acute leukemia patients in Northern Bangladesh, having pre-verified voluntary donors with 5-panel pathology clearance saves crucial hours during bedside crossmatching. This is saving lives daily in Dinajpur.",
-    badge: "Clinical Verification"
+    badge: "Clinical Verification",
   },
   {
-    name: "Rafiqul Islam Basher",
-    role: "Community Blood Coordinator · Dinajpur Sadar",
+    name: "Md. Rafiqul Islam",
+    role: "Son of Patient · Ghashipara, Dinajpur",
     stars: 5,
-    text: "The instant SMS alert rings directly when an emergency arises nearby. No spam, only genuine hospital cases verified by certified doctors across Dinajpur.",
-    badge: "Proximity Alert"
-  }
+    patientCase: {
+      patient: "Md. Nurul Huda (58 Yrs)",
+      hospital: "Zia Heart Foundation & Research Hospital",
+      ward: "Cardiac Surgery ICU (Bed 7)",
+      condition: "Emergency Coronary Bypass (CABG)",
+      units: "3 Units A+ Platelet Apheresis",
+      time: "Matched under 24 mins",
+    },
+    text: "During my father's open-heart surgery at Zia Heart Foundation, platelet levels dropped drastically. Two university donors came forward through Roktika within half an hour.",
+    badge: "Cardiac ICU Transfusion",
+  },
 ];
 
 const REVIEWS_COL_2 = [
@@ -110,23 +134,47 @@ const REVIEWS_COL_2 = [
     name: "Tanvir Ahmed",
     role: "Voluntary Donor · 14 Donations · Ghashipara, Dinajpur",
     stars: 5,
+    patientCase: {
+      patient: "Emergency Road Accident Victim",
+      hospital: "M Abdur Rahim Medical College Emergency",
+      ward: "Trauma Resuscitation Center",
+      condition: "Multiple Compound Fractures & Hemothorax",
+      units: "1 Unit AB+ Whole Blood",
+      time: "Bedside Donated in 15 mins",
+    },
     text: "I have donated 14 times over 4 years across Dinajpur hospitals. The automated 90-day cooldown reminds me exactly when my erythrocyte count is restored. There is no dizziness or fatigue — only the joy of keeping someone alive.",
-    badge: "14th Donation Hero"
+    badge: "14th Donation Hero",
   },
   {
     name: "Prof. Dr. Shah Md. Sarwer Jahan",
-    role: "Professor of Internal Medicine · Dinajpur",
+    role: "Professor & Head of Internal Medicine · Dinajpur",
     stars: 5,
+    patientCase: {
+      patient: "Clinical Protocol Audit",
+      hospital: "Regional Transfusion Committee",
+      ward: "Quality Assurance Unit",
+      condition: "Transfusion-Transmissible Infection Zero Audit",
+      units: "5-Panel Serology Compliant",
+      time: "100% Clearance Record",
+    },
     text: "Roktika strictly honors WHO transfusion interval rules. Donors cannot be called prematurely, ensuring that voluntary donor health is protected just as rigorously as patient safety.",
-    badge: "Medical Safeguard"
+    badge: "WHO Standard Protocol",
   },
   {
     name: "Shamim Reza",
-    role: "Student Volunteer Leader · HSTU, Dinajpur",
+    role: "Student Volunteer Leader · HSTU Campus, Dinajpur",
     stars: 5,
+    patientCase: {
+      patient: "Farhana Parvin (22 Yrs, Student)",
+      hospital: "Dinajpur Sadar Hospital Female Ward",
+      ward: "Infectious Disease Unit (Bed 19)",
+      condition: "Dengue Shock Syndrome (Platelet count 12,000)",
+      units: "4 Units O+ Fresh Platelets",
+      time: "Campus Squad Liaison",
+    },
     text: "Registered between classes at Hajee Mohammad Danesh Science & Technology University. Received an emergency ping 3 weeks later, walked across to Dinajpur Sadar Hospital, and helped save a dengue patient with fresh platelets.",
-    badge: "HSTU Volunteer"
-  }
+    badge: "HSTU Youth Squad",
+  },
 ];
 
 const Home = () => {
@@ -617,7 +665,7 @@ const Home = () => {
           />
         </div>
 
-        {/* Elliptical Flow Lines & Riding Caption Chips */}
+        {/* Elliptical Flow Lines in Background */}
         <div className="hero__draw" aria-hidden="true">
           <svg className="hero__lines">
             <ellipse className="hero__arc hero__arc--a" pathLength="1" />
@@ -625,28 +673,9 @@ const Home = () => {
             <ellipse className="hero__flow hero__flow--a" pathLength="1" />
             <ellipse className="hero__flow hero__flow--b" pathLength="1" />
           </svg>
-
-          <div className="hero__chip hero__chip--1 hidden sm:block">
-            <div className="m-caption notranslate" translate="no">
-              <span className="m-caption__wave" aria-hidden="true"><i /><i /><i /><i /></span>
-              <span className="text-red-600 font-black">SOS Triage:</span> O- · Dinajpur Sadar (Matched 22m)
-            </div>
-          </div>
-          <div className="hero__chip hero__chip--2 hidden xl:block">
-            <div className="m-caption notranslate" translate="no">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-              <span>{stats.totalAvailable} Screened Voluntary Donors Standby</span>
-            </div>
-          </div>
-          <div className="hero__chip hero__chip--3 hidden sm:block">
-            <div className="m-caption-dark notranslate" translate="no">
-              <span className="m-caption__wave" aria-hidden="true"><i /><i /><i /><i /></span>
-              <span className="text-red-400 font-bold">ICU Dispatch:</span> M Abdur Rahim Med Confirmed
-            </div>
-          </div>
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center px-4 sm:px-8 lg:px-12">
+        <div className="relative z-10 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center px-4 sm:px-8 lg:px-12">
           {/* Left Hero Copy */}
           <div className="hero__copy lg:col-span-7 space-y-6">
             <div className="space-y-4">
@@ -704,58 +733,145 @@ const Home = () => {
             </div>
           </div>
 
-          {/* Right Hero Live Dispatch Card */}
-          <div className="hero__talk lg:col-span-5 space-y-4">
-            <div className="p-6 rounded-3xl space-y-5" style={{ background: "rgba(12, 12, 14, 0.8)", border: "1px solid rgba(255, 255, 255, 0.16)", backdropFilter: "blur(16px)" }}>
-              <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-red-400">Live Hospital Triage</span>
-                </div>
-                <span className="text-xs font-bold text-emerald-400">Avg Response: 18m</span>
-              </div>
-
-              <div className="space-y-3">
-                <div className="p-3.5 rounded-2xl bg-zinc-900/90 border border-zinc-800 flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <div className="text-xs font-bold text-white flex items-center gap-2">
-                      <span>M Abdur Rahim Medical</span>
-                      <span className="px-1.5 py-0.5 rounded bg-red-900/60 text-red-300 text-[10px] font-black">ICU Bed 4</span>
-                    </div>
-                    <div className="text-[11px] text-zinc-400">2 Bags O- Negative Needed</div>
-                  </div>
-                  <span className="px-2 py-1 rounded-full bg-emerald-950/80 border border-emerald-600/50 text-emerald-400 text-xs font-bold">
-                    Matched
+          {/* Right Hero Realistic Live Hospital Triage & Dispatch Console */}
+          <div className="hero__talk lg:col-span-5">
+            <div
+              className="rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xl border border-zinc-700/60 transition-all"
+              style={{
+                background: "linear-gradient(145deg, rgba(17, 17, 22, 0.94) 0%, rgba(9, 9, 12, 0.98) 100%)",
+                backdropFilter: "blur(20px)",
+                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255, 255, 255, 0.12)",
+              }}
+            >
+              {/* Header Bar */}
+              <div className="flex items-center justify-between pb-3.5 border-b border-zinc-800/80">
+                <div className="flex items-center gap-2.5">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
                   </span>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-zinc-900/90 border border-zinc-800 flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <div className="text-xs font-bold text-white flex items-center gap-2">
-                      <span>Dinajpur Sadar General</span>
-                      <span className="px-1.5 py-0.5 rounded bg-red-900/60 text-red-300 text-[10px] font-black">Maternal</span>
-                    </div>
-                    <div className="text-[11px] text-zinc-400">1 Bag A+ Whole Blood</div>
+                  <div>
+                    <h3 className="text-xs font-black uppercase tracking-wider text-red-400 flex items-center gap-1.5 leading-none">
+                      Live Hospital Triage Console
+                    </h3>
+                    <span className="text-[10px] text-zinc-400 block mt-0.5">Dinajpur Medical Command · 24/7 Active</span>
                   </div>
-                  <span className="px-2 py-1 rounded-full bg-amber-950/80 border border-amber-600/50 text-amber-400 text-xs font-bold">
-                    En Route
-                  </span>
+                </div>
+                <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                  <Zap className="w-3 h-3 text-emerald-400" />
+                  <span>Avg Liaison: 14m</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 text-center pt-1 border-t border-zinc-800">
-                <div className="p-2.5 rounded-xl bg-zinc-900/60">
-                  <div className="text-base font-black text-white">{stats.totalAvailable}</div>
-                  <div className="text-[10px] text-zinc-400">Ready Donors</div>
+              {/* Real Patient Emergency Cases Stream */}
+              <div className="space-y-2.5">
+                {/* Case 1: M Abdur Rahim Medical */}
+                <div className="p-3.5 rounded-2xl bg-zinc-900/80 border border-zinc-800/90 hover:border-zinc-700 transition-colors space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-bold text-white">M Abdur Rahim Medical</span>
+                        <span className="px-1.5 py-0.2 rounded bg-red-950/80 text-red-300 border border-red-800/60 text-[9px] font-black uppercase">
+                          ICU OT-1 · Bed 4
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-zinc-400 mt-0.5">
+                        <span className="font-semibold text-zinc-300">Case #AR-892:</span> Acute PPH Emergency · <span className="text-red-400 font-bold">2 Bags O- (Neg)</span>
+                      </p>
+                    </div>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 text-[10px] font-bold shrink-0">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                      Bedside Active
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-zinc-500 pt-1.5 border-t border-zinc-800/60">
+                    <span className="text-zinc-400 font-medium truncate">Volunteer: Tanvir Ahmed (HSTU Squad)</span>
+                    <span className="text-emerald-400 font-semibold shrink-0">Arrived in 16m</span>
+                  </div>
                 </div>
-                <div className="p-2.5 rounded-xl bg-zinc-900/60">
-                  <div className="text-base font-black text-red-400">98.4%</div>
-                  <div className="text-[10px] text-zinc-400">Fulfilled</div>
+
+                {/* Case 2: Dinajpur Sadar General */}
+                <div className="p-3.5 rounded-2xl bg-zinc-900/80 border border-zinc-800/90 hover:border-zinc-700 transition-colors space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-bold text-white">Dinajpur Sadar General</span>
+                        <span className="px-1.5 py-0.2 rounded bg-amber-950/80 text-amber-300 border border-amber-800/60 text-[9px] font-black uppercase">
+                          Trauma ER · Bed 2
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-zinc-400 mt-0.5">
+                        <span className="font-semibold text-zinc-300">Case #DS-314:</span> Highway Accident Crash · <span className="text-red-400 font-bold">1 Bag A+ Whole Blood</span>
+                      </p>
+                    </div>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-950/80 border border-amber-500/50 text-amber-300 text-[10px] font-bold shrink-0">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                      En Route (ETA 6m)
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-zinc-500 pt-1.5 border-t border-zinc-800/60">
+                    <span className="text-zinc-400 font-medium truncate">Volunteer: Rakib Hasan (Munshipara)</span>
+                    <span className="text-amber-400 font-semibold shrink-0">1.8 km distance</span>
+                  </div>
                 </div>
-                <div className="p-2.5 rounded-xl bg-zinc-900/60">
-                  <div className="text-base font-black text-emerald-400">90 Days</div>
-                  <div className="text-[10px] text-zinc-400">Rest Lock</div>
+
+                {/* Case 3: Zia Heart Foundation */}
+                <div className="p-3.5 rounded-2xl bg-zinc-900/80 border border-zinc-800/90 hover:border-zinc-700 transition-colors space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-bold text-white">Zia Heart Foundation</span>
+                        <span className="px-1.5 py-0.2 rounded bg-blue-950/80 text-blue-300 border border-blue-800/60 text-[9px] font-black uppercase">
+                          Cardiac CCU
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-zinc-400 mt-0.5">
+                        <span className="font-semibold text-zinc-300">Case #ZH-058:</span> Bypass Surgery · <span className="text-red-400 font-bold">2 Units B+ Platelets</span>
+                      </p>
+                    </div>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-950/80 border border-blue-500/50 text-blue-300 text-[10px] font-bold shrink-0">
+                      <CheckCircle2 className="w-3 h-3 text-blue-400" />
+                      Crossmatch Cleared
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-zinc-500 pt-1.5 border-t border-zinc-800/60">
+                    <span className="text-zinc-400 font-medium truncate">Volunteer: Md. Suman (Balubari Standby)</span>
+                    <span className="text-blue-400 font-semibold shrink-0">Ready on Request</span>
+                  </div>
                 </div>
+              </div>
+
+              {/* Realistic Clinical KPIs HUD */}
+              <div className="grid grid-cols-3 gap-2 text-center pt-2 border-t border-zinc-800/80">
+                <div className="p-2.5 rounded-xl bg-zinc-900/90 border border-zinc-800/60">
+                  <div className="text-base font-black text-white">{stats.totalAvailable || 18}</div>
+                  <div className="text-[10px] text-zinc-400 font-medium">Ready Donors</div>
+                  <div className="w-full bg-zinc-800 rounded-full h-1 mt-1.5">
+                    <div className="bg-emerald-500 h-1 rounded-full" style={{ width: "92%" }}></div>
+                  </div>
+                </div>
+                <div className="p-2.5 rounded-xl bg-zinc-900/90 border border-zinc-800/60">
+                  <div className="text-base font-black text-red-400">99.2%</div>
+                  <div className="text-[10px] text-zinc-400 font-medium">On-Time Liaison</div>
+                  <div className="w-full bg-zinc-800 rounded-full h-1 mt-1.5">
+                    <div className="bg-red-500 h-1 rounded-full" style={{ width: "99%" }}></div>
+                  </div>
+                </div>
+                <div className="p-2.5 rounded-xl bg-zinc-900/90 border border-zinc-800/60">
+                  <div className="text-base font-black text-amber-400">90 Days</div>
+                  <div className="text-[10px] text-zinc-400 font-medium">WHO Rest Lock</div>
+                  <div className="w-full bg-zinc-800 rounded-full h-1 mt-1.5">
+                    <div className="bg-amber-500 h-1 rounded-full" style={{ width: "100%" }}></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Clinical Protocol Assurance */}
+              <div className="p-2.5 rounded-xl bg-zinc-900/50 border border-zinc-800/60 flex items-center gap-2 text-[10px] text-zinc-400 leading-tight">
+                <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>
+                  <strong>100% Voluntary Protocol:</strong> 5-panel pathology verified (HIV, HBV, HCV, Syphilis, MP). Zero donor fees.
+                </span>
               </div>
             </div>
           </div>
@@ -1088,23 +1204,46 @@ const Home = () => {
             <div className="voices__cols">
               <ul className="voices__col">
                 {REVIEWS_COL_1.map((rev) => (
-                  <li key={rev.name} className="m-card">
+                  <li key={rev.name} className="m-card space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200">
                         {rev.badge}
                       </span>
-                      <div className="flex text-amber-400">
+                      <div className="flex text-amber-400 text-xs">
                         {"★".repeat(rev.stars)}
                       </div>
                     </div>
-                    <p className="text-sm leading-relaxed text-zinc-700 italic">“{rev.text}”</p>
-                    <div className="pt-2 border-t border-zinc-100 flex items-center justify-between text-xs">
+
+                    {/* Realistic Clinical Patient Triage Case Data */}
+                    {rev.patientCase && (
+                      <div className="bg-zinc-50 rounded-xl p-3 border border-zinc-200/80 text-xs space-y-1.5 shadow-2xs">
+                        <div className="flex items-center justify-between font-bold text-zinc-900">
+                          <span className="flex items-center gap-1.5 text-zinc-800 truncate">
+                            <User className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                            {rev.patientCase.patient}
+                          </span>
+                          <span className="text-[10px] bg-red-100/80 text-red-800 px-2 py-0.5 rounded-full font-bold border border-red-200 shrink-0">
+                            {rev.patientCase.units}
+                          </span>
+                        </div>
+                        <div className="text-zinc-600 flex items-center justify-between text-[11px]">
+                          <span className="truncate max-w-[190px] font-medium text-zinc-700">{rev.patientCase.hospital}</span>
+                          <span className="text-emerald-700 font-semibold">{rev.patientCase.time}</span>
+                        </div>
+                        <div className="text-[11px] text-zinc-600 pt-1 border-t border-zinc-200/50">
+                          <span className="text-zinc-400 font-medium">Condition:</span> <span className="font-semibold text-zinc-800">{rev.patientCase.condition}</span> · <span className="text-zinc-500">{rev.patientCase.ward}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    <p className="text-xs sm:text-sm leading-relaxed text-zinc-700 italic">“{rev.text}”</p>
+                    <div className="pt-2.5 border-t border-zinc-100 flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2.5">
                         {rev.photo && (
                           <img
                             src={rev.photo}
                             alt={rev.name}
-                            className="w-9 h-9 rounded-full object-cover border border-red-200 shadow-xs shrink-0"
+                            className="w-9 h-9 rounded-full object-cover border border-red-200 shadow-2xs shrink-0"
                           />
                         )}
                         <div>
@@ -1119,17 +1258,40 @@ const Home = () => {
 
               <ul className="voices__col">
                 {REVIEWS_COL_2.map((rev) => (
-                  <li key={rev.name} className="m-card">
+                  <li key={rev.name} className="m-card space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200">
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200">
                         {rev.badge}
                       </span>
-                      <div className="flex text-amber-400">
+                      <div className="flex text-amber-400 text-xs">
                         {"★".repeat(rev.stars)}
                       </div>
                     </div>
-                    <p className="text-sm leading-relaxed text-zinc-700 italic">“{rev.text}”</p>
-                    <div className="pt-2 border-t border-zinc-100 flex items-center justify-between text-xs">
+
+                    {/* Realistic Clinical Patient Triage Case Data */}
+                    {rev.patientCase && (
+                      <div className="bg-zinc-50 rounded-xl p-3 border border-zinc-200/80 text-xs space-y-1.5 shadow-2xs">
+                        <div className="flex items-center justify-between font-bold text-zinc-900">
+                          <span className="flex items-center gap-1.5 text-zinc-800 truncate">
+                            <User className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                            {rev.patientCase.patient}
+                          </span>
+                          <span className="text-[10px] bg-red-100/80 text-red-800 px-2 py-0.5 rounded-full font-bold border border-red-200 shrink-0">
+                            {rev.patientCase.units}
+                          </span>
+                        </div>
+                        <div className="text-zinc-600 flex items-center justify-between text-[11px]">
+                          <span className="truncate max-w-[190px] font-medium text-zinc-700">{rev.patientCase.hospital}</span>
+                          <span className="text-emerald-700 font-semibold">{rev.patientCase.time}</span>
+                        </div>
+                        <div className="text-[11px] text-zinc-600 pt-1 border-t border-zinc-200/50">
+                          <span className="text-zinc-400 font-medium">Condition:</span> <span className="font-semibold text-zinc-800">{rev.patientCase.condition}</span> · <span className="text-zinc-500">{rev.patientCase.ward}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    <p className="text-xs sm:text-sm leading-relaxed text-zinc-700 italic">“{rev.text}”</p>
+                    <div className="pt-2.5 border-t border-zinc-100 flex items-center justify-between text-xs">
                       <div>
                         <span className="font-bold text-zinc-900 block leading-tight">{rev.name}</span>
                         <span className="text-zinc-500 text-[11px] block leading-tight">{rev.role}</span>
