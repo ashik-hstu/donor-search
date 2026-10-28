@@ -37,10 +37,27 @@ const SearchDonar = () => {
   const [availabilityFilter, setAvailabilityFilter] = useState("all"); // 'all' | 'ready' | 'cooldown'
   const [includeCompatible, setIncludeCompatible] = useState(false);
 
+  // ONLY show donor profiles AFTER the user actively searches
+  const [hasSearched, setHasSearched] = useState(false);
+
+  // Executed search query (frozen and applied when user clicks "Search Donors")
+  const [activeSearch, setActiveSearch] = useState({
+    group: "",
+    district: "",
+    city: "",
+    area: "",
+    hospital: "",
+    includeCompatible: false,
+  });
+
   // Sync state if URL query params change (e.g. from navbar, homepage links, or back/forward)
   useEffect(() => {
     const g = searchParams.get("group") || "";
     setSelectedGroup(g);
+    if (g) {
+      setActiveSearch((prev) => ({ ...prev, group: g }));
+      setHasSearched(true);
+    }
   }, [searchParams]);
 
   const handleDistrictBoxClick = (distName) => {
@@ -87,7 +104,7 @@ const SearchDonar = () => {
     fetchDonorsAndStats();
   }, []);
 
-  // When clicking a blood group box, update selection and URL query params
+  // When clicking a blood group box, update selection in the form
   const handleGroupSelect = (group) => {
     if (selectedGroup === group) {
       setSelectedGroup("");
@@ -103,10 +120,23 @@ const SearchDonar = () => {
     }
   };
 
-  // Trigger smooth scroll down to results section on form submit / clicking "Search Donors"
+  // Trigger search on form submit / clicking "Search Donors"
   const handleSearchSubmit = (e) => {
     if (e) e.preventDefault();
-    document.getElementById("donor-results")?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    setActiveSearch({
+      group: selectedGroup,
+      district: selectedDistrict,
+      city: selectedCity,
+      area: searchArea.trim(),
+      hospital: selectedHospital,
+      includeCompatible: includeCompatible,
+    });
+    setHasSearched(true);
+
+    setTimeout(() => {
+      document.getElementById("donor-results")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 60);
   };
 
   // Clear search and reset back to clean state
@@ -118,30 +148,93 @@ const SearchDonar = () => {
     setSelectedHospital("");
     setAvailabilityFilter("all");
     setIncludeCompatible(false);
+    setHasSearched(false);
+    setActiveSearch({
+      group: "",
+      district: "",
+      city: "",
+      area: "",
+      hospital: "",
+      includeCompatible: false,
+    });
     const nextParams = new URLSearchParams(searchParams);
     nextParams.delete("group");
     setSearchParams(nextParams);
   };
 
-  // Intelligent Live Search Matching Algorithm with Prioritization:
-  // 1. Blood group match & Antigenic compatibility support
-  // 2. Same District + Same City + Address Area Match + Hospital Match
-  // 3. Same District + Same City + Address Area Match
-  // 4. Same District + Same City + Hospital Match
-  // 5. Same District + Same City
-  // 6. Same District (nearby city fallback with transparent notice)
-  // 7. Hospital vicinity fallback
+  // Remove individual active query criteria and refresh results
+  const handleRemoveGroupQuery = () => {
+    setSelectedGroup("");
+    setIncludeCompatible(false);
+    setActiveSearch((prev) => {
+      const next = { ...prev, group: "", includeCompatible: false };
+      if (!next.district && !next.city && !next.area && !next.hospital) {
+        setHasSearched(false);
+      }
+      return next;
+    });
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("group");
+    setSearchParams(nextParams);
+  };
+
+  const handleRemoveDistrictQuery = () => {
+    setSelectedDistrict("");
+    setSelectedCity("");
+    setActiveSearch((prev) => {
+      const next = { ...prev, district: "", city: "" };
+      if (!next.group && !next.area && !next.hospital) {
+        setHasSearched(false);
+      }
+      return next;
+    });
+  };
+
+  const handleRemoveCityQuery = () => {
+    setSelectedCity("");
+    setActiveSearch((prev) => ({ ...prev, city: "" }));
+  };
+
+  const handleRemoveAreaQuery = () => {
+    setSearchArea("");
+    setActiveSearch((prev) => {
+      const next = { ...prev, area: "" };
+      if (!next.group && !next.district && !next.city && !next.hospital) {
+        setHasSearched(false);
+      }
+      return next;
+    });
+  };
+
+  const handleRemoveHospitalQuery = () => {
+    setSelectedHospital("");
+    setActiveSearch((prev) => {
+      const next = { ...prev, hospital: "" };
+      if (!next.group && !next.district && !next.city && !next.area) {
+        setHasSearched(false);
+      }
+      return next;
+    });
+  };
+
+  // Search Matching Algorithm based on active search query:
+  // Returns empty results until user executes a search!
   const computeSearchResults = () => {
-    const searchGrp = selectedGroup;
-    const searchDist = (selectedDistrict || "").toLowerCase();
-    const searchCity = (selectedCity || "").toLowerCase();
-    const searchAddr = (searchArea || "").trim().toLowerCase();
-    const searchHosp = (selectedHospital || "").trim().toLowerCase();
+    if (!hasSearched) {
+      return { results: [], counts: { all: 0, ready: 0, cooldown: 0 }, fallbackUsed: false, fallbackNote: "" };
+    }
+
+    const searchGrp = activeSearch.group;
+    const searchDist = (activeSearch.district || "").toLowerCase();
+    const searchCity = (activeSearch.city || "").toLowerCase();
+    const searchAddr = (activeSearch.area || "").trim().toLowerCase();
+    const searchHosp = (activeSearch.hospital || "").trim().toLowerCase();
+    const searchCompatible = activeSearch.includeCompatible;
 
     // 1. Filter by Blood Group or Compatibility
     let groupFiltered = donors;
     if (searchGrp) {
-      if (includeCompatible && BLOOD_COMPATIBILITY[searchGrp]?.canReceiveFrom) {
+      if (searchCompatible && BLOOD_COMPATIBILITY[searchGrp]?.canReceiveFrom) {
         const compTypes = BLOOD_COMPATIBILITY[searchGrp].canReceiveFrom;
         groupFiltered = donors.filter((d) => compTypes.includes(d.group));
       } else {
@@ -149,7 +242,7 @@ const SearchDonar = () => {
       }
     }
 
-    const hospitalObj = BANGLADESH_HOSPITALS.find((h) => h.name === selectedHospital);
+    const hospitalObj = BANGLADESH_HOSPITALS.find((h) => h.name === activeSearch.hospital);
     const hospDistrict = (hospitalObj?.district || "").toLowerCase();
     const hospArea = (hospitalObj?.area || "").toLowerCase();
 
@@ -177,23 +270,22 @@ const SearchDonar = () => {
 
       if (distMatches && cityMatches) {
         if (searchAddr && addrMatches && searchHosp && hospMatches) {
-          tier1.push({ ...donor, matchType: `Exact Area & Hospital Match in ${donor.city || selectedCity}` });
+          tier1.push({ ...donor, matchType: `Exact Area & Hospital Match in ${donor.city || activeSearch.city}` });
         } else if (searchAddr && addrMatches) {
-          tier2.push({ ...donor, matchType: `Exact Area Match in ${donor.city || selectedCity}` });
+          tier2.push({ ...donor, matchType: `Exact Area Match in ${donor.city || activeSearch.city}` });
         } else if (searchHosp && hospMatches) {
-          tier3.push({ ...donor, matchType: `Hospital Vicinity Match (${donor.hospital || selectedHospital})` });
+          tier3.push({ ...donor, matchType: `Hospital Vicinity Match (${donor.hospital || activeSearch.hospital})` });
         } else if (searchCity) {
-          tier4.push({ ...donor, matchType: `City Match in ${donor.city || selectedCity}` });
+          tier4.push({ ...donor, matchType: `City Match in ${donor.city || activeSearch.city}` });
         } else if (searchDist) {
-          tier4.push({ ...donor, matchType: `District Match in ${donor.district || selectedDistrict}` });
+          tier4.push({ ...donor, matchType: `District Match in ${donor.district || activeSearch.district}` });
         } else {
           tier4.push({ ...donor, matchType: searchGrp ? `Blood Group ${donor.group} Match` : "Verified Volunteer" });
         }
       } else if (distMatches && searchCity) {
-        // District matched, but specified city has no donors; this donor is in another city of same district
         tier5.push({ ...donor, matchType: `Nearby City Match in ${donor.city || donor.district}` });
       } else if (searchHosp && hospMatches) {
-        tier6.push({ ...donor, matchType: `Hospital Match (${selectedHospital})` });
+        tier6.push({ ...donor, matchType: `Hospital Match (${activeSearch.hospital})` });
       }
     });
 
@@ -213,21 +305,19 @@ const SearchDonar = () => {
     } else if (tier5.length > 0) {
       combined = tier5;
       fallbackUsed = true;
-      fallbackNote = `No direct matches in "${selectedCity}", but matched ${tier5.length} nearby volunteer${tier5.length > 1 ? "s" : ""} in other cities of ${selectedDistrict} District.`;
+      fallbackNote = `No direct matches in "${activeSearch.city}", but matched ${tier5.length} nearby volunteer${tier5.length > 1 ? "s" : ""} in other cities of ${activeSearch.district} District.`;
     } else if (tier6.length > 0) {
       combined = tier6;
       fallbackUsed = true;
-      fallbackNote = `Hospital vicinity match applied for "${selectedHospital}".`;
+      fallbackNote = `Hospital vicinity match applied for "${activeSearch.hospital}".`;
     }
 
-    // Availability breakdown for tabs:
     const counts = {
       all: combined.length,
       ready: combined.filter((d) => d.isAvailable).length,
       cooldown: combined.filter((d) => !d.isAvailable).length,
     };
 
-    // Apply availabilityFilter
     let finalResults = combined;
     if (availabilityFilter === "ready") {
       finalResults = combined.filter((d) => d.isAvailable);
@@ -239,13 +329,20 @@ const SearchDonar = () => {
   };
 
   const { results: relevantDonors, counts, fallbackUsed, fallbackNote } = computeSearchResults();
-  const hasActiveFilters = Boolean(
+  const hasActiveQuery = Boolean(
+    activeSearch.group ||
+    activeSearch.district ||
+    activeSearch.city ||
+    activeSearch.area ||
+    activeSearch.hospital ||
+    activeSearch.includeCompatible
+  );
+  const hasFormSelection = Boolean(
     selectedGroup ||
     selectedDistrict ||
     selectedCity ||
     searchArea ||
     selectedHospital ||
-    availabilityFilter !== "all" ||
     includeCompatible
   );
 
@@ -432,7 +529,7 @@ const SearchDonar = () => {
                 2. Regional &amp; Vicinity Search (Emergency Style)
               </h2>
             </div>
-            {hasActiveFilters && (
+            {(hasFormSelection || hasSearched) && (
               <button
                 type="button"
                 onClick={handleClearSearch}
@@ -638,9 +735,9 @@ const SearchDonar = () => {
           {/* Action & Scope Bar */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-zinc-100">
             <div className="text-xs text-zinc-500 flex flex-wrap items-center gap-2">
-              <span className="font-semibold text-zinc-700">Live filters:</span>
+              <span className="font-semibold text-zinc-700">Search criteria:</span>
               <span className="bg-red-50 text-red-700 border border-red-200 px-2.5 py-0.5 rounded-full font-bold">
-                {selectedGroup ? `Blood: ${selectedGroup}` : "All Blood Groups"}
+                {selectedGroup ? `Blood: ${selectedGroup}` : "Any Blood Group"}
               </span>
               <span>•</span>
               <span className="font-bold text-zinc-900 bg-zinc-100 px-2.5 py-0.5 rounded-full">
@@ -656,13 +753,13 @@ const SearchDonar = () => {
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              {(selectedDistrict || selectedCity || selectedGroup || searchArea || selectedHospital || availabilityFilter !== "all" || includeCompatible) && (
+              {(selectedDistrict || selectedCity || selectedGroup || searchArea || selectedHospital || availabilityFilter !== "all" || includeCompatible || hasSearched) && (
                 <button
                   type="button"
                   onClick={handleClearSearch}
                   className="btn btn-sm btn-outline border-zinc-300 rounded-full text-xs px-4"
                 >
-                  Reset All
+                  Reset Form
                 </button>
               )}
               <button
@@ -670,19 +767,80 @@ const SearchDonar = () => {
                 className="btn-roktika !min-h-0 !py-3 !px-6 !text-xs sm:!text-sm w-full sm:w-auto"
               >
                 <Search className="w-4 h-4 shrink-0" />
-                <span className="btn-label">View Results ({relevantDonors.length})</span>
+                <span className="btn-label">Search Donors</span>
                 <span className="btn-wave" aria-hidden="true"><i/><i/><i/></span>
               </button>
             </div>
           </div>
         </form>
 
-        {/* RESULTS SECTION: LIVE MATCHING DONORS */}
+        {/* RESULTS SECTION: SEARCH REQUIRED */}
         <div id="donor-results" className="space-y-6 pt-2">
           {loading ? (
             <div className="py-20 text-center bg-white rounded-3xl border border-zinc-200">
               <span className="loading loading-spinner loading-lg text-red-600"></span>
               <p className="text-xs text-zinc-400 mt-2">Connecting to verified donor registry...</p>
+            </div>
+          ) : !hasSearched ? (
+            /* DEFAULT STATE: PROMPT USER TO SEARCH (DO NOT SHOW ALL DONORS) */
+            <div className="bg-white rounded-3xl border border-zinc-200 p-8 sm:p-12 text-center max-w-2xl mx-auto shadow-xs space-y-5">
+              <div className="w-16 h-16 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto border border-red-100">
+                <Search className="w-8 h-8" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg sm:text-xl font-black text-zinc-950">
+                  Ready to Find Blood Donors
+                </h3>
+                <p className="text-xs sm:text-sm text-zinc-600 max-w-md mx-auto">
+                  Select your blood group and location criteria above, then click <strong className="text-zinc-900">"Search Donors"</strong> to query matching verified volunteers and check instant availability.
+                </p>
+              </div>
+
+              {hasFormSelection ? (
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={handleSearchSubmit}
+                    className="btn-roktika !py-3.5 !px-8 text-sm"
+                  >
+                    <Search className="w-4 h-4 shrink-0" />
+                    <span className="btn-label">
+                      Search with Selected Criteria {selectedGroup ? `(${selectedGroup})` : ""}
+                    </span>
+                    <span className="btn-wave" aria-hidden="true"><i/><i/><i/></span>
+                  </button>
+                </div>
+              ) : (
+                <div className="pt-2">
+                  <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block mb-3">
+                    Quick Search by Group
+                  </span>
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    {["A+", "B+", "O+", "AB+", "O-"].map((grp) => (
+                      <button
+                        key={grp}
+                        type="button"
+                        onClick={() => {
+                          setSelectedGroup(grp);
+                          setActiveSearch({
+                            group: grp,
+                            district: "",
+                            city: "",
+                            area: "",
+                            hospital: "",
+                            includeCompatible: false,
+                          });
+                          setHasSearched(true);
+                        }}
+                        className="btn btn-sm btn-outline border-zinc-200 hover:border-red-600 hover:bg-red-50 hover:text-red-700 rounded-xl text-xs font-bold"
+                      >
+                        <Droplet className="w-3 h-3 text-red-600 fill-red-600" />
+                        Search {grp}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <>
@@ -695,87 +853,85 @@ const SearchDonar = () => {
                     </h3>
                   </div>
 
-                  {/* Active Filter Chips */}
+                  {/* Active Search Query Chips */}
                   <div className="flex items-center gap-2 flex-wrap text-xs">
-                    {selectedGroup && (
+                    {activeSearch.group && (
                       <span className="inline-flex items-center gap-1.5 bg-red-600 text-white font-extrabold px-3 py-1 rounded-full shadow-xs">
-                        Group: {selectedGroup}
+                        Group: {activeSearch.group}
                         <button
                           type="button"
-                          onClick={() => handleGroupSelect(selectedGroup)}
+                          onClick={handleRemoveGroupQuery}
                           className="hover:opacity-75 focus:outline-hidden"
-                          title="Remove blood group filter"
+                          title="Remove blood group query"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
                       </span>
                     )}
 
-                    {selectedDistrict && (
+                    {activeSearch.district && (
                       <span className="inline-flex items-center gap-1.5 bg-zinc-900 text-white font-semibold px-3 py-1 rounded-full shadow-xs">
-                        {selectedCity ? `${selectedDistrict} > ${selectedCity}` : `District: ${selectedDistrict}`}
+                        {activeSearch.city ? `${activeSearch.district} > ${activeSearch.city}` : `District: ${activeSearch.district}`}
                         <button
                           type="button"
-                          onClick={() => { setSelectedDistrict(""); setSelectedCity(""); }}
+                          onClick={handleRemoveDistrictQuery}
                           className="hover:opacity-75 focus:outline-hidden"
-                          title="Remove district filter"
+                          title="Remove district query"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
                       </span>
                     )}
 
-                    {selectedCity && (
+                    {activeSearch.city && (
                       <span className="inline-flex items-center gap-1.5 bg-zinc-100 text-zinc-800 font-bold px-3 py-1 rounded-full border border-zinc-300">
-                        City: {selectedCity}
+                        City: {activeSearch.city}
                         <button
                           type="button"
-                          onClick={() => setSelectedCity("")}
+                          onClick={handleRemoveCityQuery}
                           className="hover:text-red-600 focus:outline-hidden"
-                          title="Remove city filter"
+                          title="Remove city query"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
                       </span>
                     )}
 
-                    {searchArea && (
+                    {activeSearch.area && (
                       <span className="inline-flex items-center gap-1.5 border border-zinc-300 text-zinc-700 px-3 py-1 rounded-full">
-                        Area: "{searchArea}"
+                        Area: "{activeSearch.area}"
                         <button
                           type="button"
-                          onClick={() => setSearchArea("")}
+                          onClick={handleRemoveAreaQuery}
                           className="hover:text-red-600 focus:outline-hidden"
-                          title="Clear area filter"
+                          title="Clear area query"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
                       </span>
                     )}
 
-                    {selectedHospital && (
+                    {activeSearch.hospital && (
                       <span className="inline-flex items-center gap-1.5 border border-blue-200 text-blue-700 bg-blue-50 px-3 py-1 rounded-full truncate max-w-[240px]">
-                        Hospital: {selectedHospital}
+                        Hospital: {activeSearch.hospital}
                         <button
                           type="button"
-                          onClick={() => setSelectedHospital("")}
+                          onClick={handleRemoveHospitalQuery}
                           className="hover:text-blue-900 focus:outline-hidden shrink-0"
-                          title="Clear hospital filter"
+                          title="Clear hospital query"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
                       </span>
                     )}
 
-                    {(selectedGroup || selectedDistrict || selectedCity || searchArea || selectedHospital || availabilityFilter !== "all" || includeCompatible) && (
-                      <button
-                        type="button"
-                        onClick={handleClearSearch}
-                        className="text-xs text-red-600 hover:text-red-800 hover:underline font-bold ml-1"
-                      >
-                        Reset All Filters
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={handleClearSearch}
+                      className="text-xs text-red-600 hover:text-red-800 hover:underline font-bold ml-1"
+                    >
+                      Reset Search
+                    </button>
                   </div>
                 </div>
 
@@ -841,39 +997,42 @@ const SearchDonar = () => {
                       No Matching Donors Found
                     </h4>
                     <p className="text-xs text-zinc-500 mt-1 max-w-md mx-auto">
-                      {selectedGroup
-                        ? `No verified ${selectedGroup} donors found matching your exact location criteria.`
-                        : "No verified donors matched your current filter criteria."}
+                      {activeSearch.group
+                        ? `No verified ${activeSearch.group} donors found matching your exact search criteria.`
+                        : "No verified donors matched your current search criteria."}
                     </p>
                   </div>
 
                   {/* Contextual Suggestion Actions */}
                   <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-                    {selectedGroup && BLOOD_COMPATIBILITY[selectedGroup]?.canReceiveFrom && !includeCompatible && (
+                    {activeSearch.group && BLOOD_COMPATIBILITY[activeSearch.group]?.canReceiveFrom && !activeSearch.includeCompatible && (
                       <button
                         type="button"
-                        onClick={() => setIncludeCompatible(true)}
+                        onClick={() => {
+                          setIncludeCompatible(true);
+                          setActiveSearch((prev) => ({ ...prev, includeCompatible: true }));
+                        }}
                         className="btn btn-sm bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-bold px-4"
                       >
                         <Sparkles className="w-3.5 h-3.5" />
-                        Show Compatible Groups for {selectedGroup} ({BLOOD_COMPATIBILITY[selectedGroup].canReceiveFrom.join(", ")})
+                        Show Compatible Groups for {activeSearch.group} ({BLOOD_COMPATIBILITY[activeSearch.group].canReceiveFrom.join(", ")})
                       </button>
                     )}
 
-                    {selectedCity && (
+                    {activeSearch.city && (
                       <button
                         type="button"
-                        onClick={() => setSelectedCity("")}
+                        onClick={handleRemoveCityQuery}
                         className="btn btn-sm btn-outline border-zinc-300 text-zinc-800 rounded-full text-xs font-bold px-4"
                       >
-                        Search All {selectedDistrict || "Districts"}
+                        Search All {activeSearch.district || "Districts"}
                       </button>
                     )}
 
-                    {selectedDistrict && (
+                    {activeSearch.district && (
                       <button
                         type="button"
-                        onClick={() => { setSelectedDistrict(""); setSelectedCity(""); }}
+                        onClick={handleRemoveDistrictQuery}
                         className="btn btn-sm btn-outline border-zinc-300 text-zinc-800 rounded-full text-xs font-bold px-4"
                       >
                         Search Nationwide
@@ -885,7 +1044,7 @@ const SearchDonar = () => {
                       onClick={handleClearSearch}
                       className="btn btn-sm btn-ghost text-red-600 rounded-full text-xs font-bold px-4"
                     >
-                      Reset All Filters
+                      Reset Search
                     </button>
                   </div>
                 </div>
