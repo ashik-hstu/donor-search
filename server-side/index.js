@@ -731,8 +731,8 @@ app.post("/api/donor/:id/reset-cooldown", async (req, res) => {
 // 5. ADMIN CONTROL & MANAGEMENT
 // ==========================================
 
-// POST /admin/login - Admin Login
-app.post("/admin/login", async (req, res) => {
+// POST /api/admin/login and /admin/login - Admin Login
+app.post(["/api/admin/login", "/admin/login"], async (req, res) => {
   try {
     const { email, password } = req.body;
 

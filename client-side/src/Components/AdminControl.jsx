@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router";
 import { AdminContext } from "../context/AdminContext";
 import CountdownBadge from "./CountdownBadge";
-import { BANGLADESH_HOSPITALS, BLOOD_GROUPS } from "../data/hospitals";
+import { BANGLADESH_HOSPITALS, BLOOD_GROUPS, BANGLADESH_DISTRICTS } from "../data/hospitals";
 import { API_BASE_URL } from "../config/api";
 import {
   Shield,
@@ -28,6 +28,9 @@ import {
   Lock,
   Mail,
   EyeOff,
+  MapPin,
+  Building2,
+  Upload,
 } from "lucide-react";
 
 export default function AdminControl() {
@@ -58,6 +61,14 @@ export default function AdminControl() {
 
   // Document lightbox modal
   const [viewDoc, setViewDoc] = useState(null);
+
+  // Regional division & city filters for Candidate queue (Default: Rangpur > Dinajpur)
+  const [candidateDistrict, setCandidateDistrict] = useState("Rangpur");
+  const [candidateCity, setCandidateCity] = useState("Dinajpur");
+
+  // Regional division & city filters for Approved Members directory (Default: Rangpur > Dinajpur)
+  const [approvedDistrict, setApprovedDistrict] = useState("Rangpur");
+  const [approvedCity, setApprovedCity] = useState("Dinajpur");
 
   // Reject modal
   const [rejectCandidateId, setRejectCandidateId] = useState(null);
@@ -263,8 +274,89 @@ export default function AdminControl() {
     }
   };
 
-  // Filter approved members
+  // Regional helpers for candidates
+  const handleCandidateDistrictClick = (distName) => {
+    setCandidateDistrict(distName);
+    const distObj = BANGLADESH_DISTRICTS.find((d) => d.name === distName);
+    const firstCity = distName === "Rangpur" ? "Dinajpur" : (distObj?.cities[0] || "");
+    setCandidateCity(firstCity);
+  };
+
+  const getCandidateDistrictCount = (distName) => {
+    return candidates.filter((c) => {
+      const d = (c.district || "").toLowerCase();
+      const loc = (c.location || "").toLowerCase();
+      const target = distName.toLowerCase();
+      return d.includes(target) || loc.includes(target);
+    }).length;
+  };
+
+  const getCandidateCityCount = (distName, cityName) => {
+    return candidates.filter((c) => {
+      const d = (c.district || "").toLowerCase();
+      const city = (c.city || "").toLowerCase();
+      const loc = (c.location || "").toLowerCase();
+      const targetDist = distName.toLowerCase();
+      const targetCity = cityName.toLowerCase();
+      const matchesDist = d.includes(targetDist) || loc.includes(targetDist);
+      const matchesCity = city.includes(targetCity) || loc.includes(targetCity);
+      return matchesDist && matchesCity;
+    }).length;
+  };
+
+  // Filter candidates by selected district and city
+  const filteredCandidates = candidates.filter((c) => {
+    const d = (c.district || "").toLowerCase();
+    const city = (c.city || "").toLowerCase();
+    const loc = (c.location || "").toLowerCase();
+    const targetDist = candidateDistrict.toLowerCase();
+    const targetCity = candidateCity.toLowerCase();
+    const matchesDist = d.includes(targetDist) || loc.includes(targetDist);
+    const matchesCity = city.includes(targetCity) || loc.includes(targetCity);
+    return matchesDist && matchesCity;
+  });
+
+  // Regional helpers for approved members
+  const handleApprovedDistrictClick = (distName) => {
+    setApprovedDistrict(distName);
+    const distObj = BANGLADESH_DISTRICTS.find((d) => d.name === distName);
+    const firstCity = distName === "Rangpur" ? "Dinajpur" : (distObj?.cities[0] || "");
+    setApprovedCity(firstCity);
+  };
+
+  const getApprovedDistrictCount = (distName) => {
+    return approvedMembers.filter((m) => {
+      const d = (m.district || "").toLowerCase();
+      const loc = (m.location || "").toLowerCase();
+      const target = distName.toLowerCase();
+      return d.includes(target) || loc.includes(target);
+    }).length;
+  };
+
+  const getApprovedCityCount = (distName, cityName) => {
+    return approvedMembers.filter((m) => {
+      const d = (m.district || "").toLowerCase();
+      const city = (m.city || "").toLowerCase();
+      const loc = (m.location || "").toLowerCase();
+      const targetDist = distName.toLowerCase();
+      const targetCity = cityName.toLowerCase();
+      const matchesDist = d.includes(targetDist) || loc.includes(targetDist);
+      const matchesCity = city.includes(targetCity) || loc.includes(targetCity);
+      return matchesDist && matchesCity;
+    }).length;
+  };
+
+  // Filter approved members by district, city, group, search
   const filteredApproved = approvedMembers.filter((m) => {
+    const d = (m.district || "").toLowerCase();
+    const city = (m.city || "").toLowerCase();
+    const loc = (m.location || "").toLowerCase();
+    const targetDist = approvedDistrict.toLowerCase();
+    const targetCity = approvedCity.toLowerCase();
+    const matchesDist = d.includes(targetDist) || loc.includes(targetDist);
+    const matchesCity = city.includes(targetCity) || loc.includes(targetCity);
+    if (!matchesDist || !matchesCity) return false;
+
     if (filterGroup !== "ALL" && m.group !== filterGroup) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -272,6 +364,7 @@ export default function AdminControl() {
         m.name?.toLowerCase().includes(q) ||
         m.email?.toLowerCase().includes(q) ||
         m.contact?.includes(q) ||
+        m.nid?.toLowerCase().includes(q) ||
         m.location?.toLowerCase().includes(q) ||
         m.hospital?.toLowerCase().includes(q)
       );
@@ -406,23 +499,118 @@ export default function AdminControl() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h2 className="text-base font-bold text-slate-900">
-                  Verification Queue: Pending & Appealed Candidates
+                  Verification Queue: Pending &amp; Appealed Candidates
                 </h2>
                 <p className="text-xs text-slate-500">
-                  Carefully examine NID and medical test results before approving candidates for public blood donation.
+                  Examine applicant credentials, NID records, and pathology clearance reports grouped by District &amp; City.
                 </p>
               </div>
             </div>
 
-            {candidates.length === 0 ? (
-              <div className="py-16 text-center text-slate-400">
-                <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto mb-2" />
-                <p className="text-sm font-bold text-slate-700">Verification Queue is Empty</p>
-                <p className="text-xs text-slate-400">All registered candidate applications have been processed.</p>
+            {/* 1. SELECT DISTRICT (8 Administrative Regions) */}
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <h3 className="text-xs sm:text-sm font-extrabold text-gray-900 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-red-600" />
+                  1. Filter by District:
+                </h3>
+                <span className="text-xs text-gray-500">
+                  Active Region: <strong className="text-red-600 font-bold">{candidateDistrict}</strong>
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
+                {BANGLADESH_DISTRICTS.map((dist) => {
+                  const isSelected = candidateDistrict === dist.name;
+                  const dCount = getCandidateDistrictCount(dist.name);
+
+                  return (
+                    <div
+                      key={dist.name}
+                      onClick={() => handleCandidateDistrictClick(dist.name)}
+                      className={`cursor-pointer rounded-2xl p-2.5 text-center transition-colors duration-150 select-none ${
+                        isSelected
+                          ? "bg-red-600 text-white border-2 border-red-700 ring-2 ring-red-200"
+                          : "bg-white text-zinc-900 border border-zinc-200 hover:border-red-300 hover:bg-zinc-50"
+                      }`}
+                    >
+                      <span className={`block text-xs font-bold truncate ${isSelected ? "text-white" : "text-zinc-900"}`}>
+                        {dist.name}
+                      </span>
+                      <span
+                        className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          isSelected
+                            ? "bg-white/20 text-white"
+                            : dCount > 0
+                            ? "bg-red-50 text-red-700 border border-red-200"
+                            : "bg-zinc-100 text-zinc-500"
+                        }`}
+                      >
+                        {dCount} {dCount === 1 ? "Candidate" : "Candidates"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 2. CITIES UNDER SELECTED DISTRICT */}
+            <div className="border border-zinc-200 bg-white rounded-2xl p-4 sm:p-5 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-2 border-b border-zinc-100">
+                <div className="flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-zinc-600" />
+                  <h4 className="text-xs sm:text-sm font-bold text-zinc-900">
+                    2. Select City under {candidateDistrict} District:
+                  </h4>
+                </div>
+                <span className="text-[11px] text-zinc-500">
+                  Showing applications in: <strong className="text-red-600">{candidateCity}</strong>
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
+                {(BANGLADESH_DISTRICTS.find((d) => d.name === candidateDistrict)?.cities || []).map((cityName) => {
+                  const isCitySelected = candidateCity === cityName;
+                  const cCount = getCandidateCityCount(candidateDistrict, cityName);
+
+                  return (
+                    <div
+                      key={cityName}
+                      onClick={() => setCandidateCity(cityName)}
+                      className={`cursor-pointer rounded-xl p-2.5 text-center border transition-colors duration-150 select-none ${
+                        isCitySelected
+                          ? "border-red-600 bg-red-50 text-red-900 font-bold"
+                          : "border-zinc-200 bg-zinc-50 hover:border-zinc-300 text-zinc-700 hover:bg-white"
+                      }`}
+                    >
+                      <span className="block text-xs font-bold truncate">{cityName}</span>
+                      <span
+                        className={`inline-block mt-1 text-[10px] font-bold px-1.5 py-0.2 rounded ${
+                          isCitySelected
+                            ? "bg-red-600 text-white"
+                            : cCount > 0
+                            ? "bg-red-100 text-red-700"
+                            : "bg-zinc-200 text-zinc-600"
+                        }`}
+                      >
+                        {cCount} Pending
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 3. CANDIDATE APPLICATIONS IN SELECTED CITY */}
+            {filteredCandidates.length === 0 ? (
+              <div className="py-12 bg-zinc-50 rounded-2xl border border-dashed border-zinc-300 text-center text-slate-400">
+                <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto mb-2" />
+                <p className="text-sm font-bold text-slate-700">No Pending Applications in {candidateCity}</p>
+                <p className="text-xs text-slate-400">There are no candidates awaiting verification in this city.</p>
               </div>
             ) : (
               <div className="space-y-4">
-                {candidates.map((cand) => {
+                {filteredCandidates.map((cand) => {
                   const isAppealed = cand.status === "appealed" || cand.isAppealed;
 
                   return (
@@ -462,7 +650,7 @@ export default function AdminControl() {
                         </div>
 
                         {/* Location & Hospital */}
-                        <div className="text-xs text-slate-600 text-right">
+                        <div className="text-xs text-slate-600 sm:text-right">
                           <span className="font-semibold block">{cand.location}</span>
                           <span className="text-slate-500">{cand.hospital}</span>
                         </div>
@@ -540,9 +728,15 @@ export default function AdminControl() {
                       <div className="my-3 flex items-center gap-3 flex-wrap">
                         <span className="text-xs font-bold text-slate-700">Uploaded Documents:</span>
 
+                        {cand.nid && (
+                          <span className="badge badge-outline text-xs font-mono font-bold text-slate-700">
+                            NID: {cand.nid}
+                          </span>
+                        )}
+
                         {cand.nidPhoto ? (
                           <button
-                            onClick={() => setViewDoc({ title: "NID Card", src: cand.nidPhoto })}
+                            onClick={() => setViewDoc({ title: `NID Card - ${cand.name}`, src: cand.nidPhoto })}
                             className="btn btn-xs btn-outline gap-1 text-slate-700"
                           >
                             <Eye className="w-3.5 h-3.5 text-blue-600" />
@@ -556,7 +750,7 @@ export default function AdminControl() {
                           <button
                             onClick={() =>
                               setViewDoc({
-                                title: "Medical Test Report",
+                                title: `Pathology Report - ${cand.name}`,
                                 src: cand.medicalRecords.testReportPhotos[0],
                               })
                             }
@@ -572,7 +766,7 @@ export default function AdminControl() {
                         {cand.photo && (
                           <button
                             onClick={() =>
-                              setViewDoc({ title: "Donor Portrait", src: cand.photo })
+                              setViewDoc({ title: `Donor Portrait - ${cand.name}`, src: cand.photo })
                             }
                             className="btn btn-xs btn-outline gap-1 text-slate-700"
                           >
@@ -626,7 +820,7 @@ export default function AdminControl() {
                   Approved Official Members Directory
                 </h2>
                 <p className="text-xs text-slate-500">
-                  Manage active donors, trigger/reset cooldown timers, edit details, or delete accounts.
+                  Manage active donors, review medical tests &amp; NID records, trigger/reset cooldown timers, edit details, or delete accounts.
                 </p>
               </div>
 
@@ -638,7 +832,7 @@ export default function AdminControl() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search name, hospital, location..."
+                    placeholder="Search name, NID, hospital, location..."
                     className="input input-sm input-bordered pl-8 rounded-xl text-xs w-52 sm:w-64"
                   />
                 </div>
@@ -658,131 +852,277 @@ export default function AdminControl() {
               </div>
             </div>
 
-            {/* Members Table */}
-            <div className="overflow-x-auto">
-              <table className="table table-sm w-full min-w-[640px] text-xs">
-                <thead>
-                  <tr className="bg-slate-100 text-slate-700 font-bold">
-                    <th>Donor</th>
-                    <th>Blood Group</th>
-                    <th>Contact & Location</th>
-                    <th>Hospital</th>
-                    <th>Donations</th>
-                    <th>Status / 3-Month Cooldown</th>
-                    <th className="text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredApproved.map((member) => (
-                    <tr key={member._id} className="hover:bg-slate-50/80">
-                      {/* Name & Photo */}
-                      <td>
-                        <div className="flex items-center gap-2">
-                          {member.photo ? (
-                            <img
-                              src={member.photo}
-                              alt={member.name}
-                              className="w-8 h-8 rounded-full object-cover border"
-                            />
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-red-100 text-red-700 font-bold flex items-center justify-center text-xs">
-                              {member.group}
-                            </div>
-                          )}
-                          <div>
-                            <span className="font-bold text-slate-900 block">{member.name}</span>
-                            <span className="text-[10px] text-slate-400">{member.email}</span>
-                          </div>
-                        </div>
-                      </td>
+            {/* 1. SELECT DISTRICT (8 Administrative Regions) */}
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <h3 className="text-xs sm:text-sm font-extrabold text-gray-900 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-red-600" />
+                  1. Filter by District:
+                </h3>
+                <span className="text-xs text-gray-500">
+                  Active Region: <strong className="text-red-600 font-bold">{approvedDistrict}</strong>
+                </span>
+              </div>
 
-                      {/* Group */}
-                      <td>
-                        <span className="badge badge-error text-white font-extrabold text-xs">
-                          {member.group}
-                        </span>
-                      </td>
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
+                {BANGLADESH_DISTRICTS.map((dist) => {
+                  const isSelected = approvedDistrict === dist.name;
+                  const dCount = getApprovedDistrictCount(dist.name);
 
-                      {/* Contact & Location */}
-                      <td>
-                        <div className="tabular-nums text-slate-800">{member.contact}</div>
-                        <div className="text-[11px] text-slate-500 truncate max-w-[150px]">
-                          {member.location}
-                        </div>
-                      </td>
-
-                      {/* Hospital */}
-                      <td className="text-[11px] text-slate-600 truncate max-w-[180px]">
-                        {member.hospital || "General Hospital"}
-                      </td>
-
-                      {/* Donation count */}
-                      <td>
-                        <span className="badge badge-neutral text-xs font-bold">
-                          {member.donationCount || 0} Times
-                        </span>
-                      </td>
-
-                      {/* Cooldown Status (Point 8) */}
-                      <td>
-                        {member.isAvailable ? (
-                          <span className="badge badge-success text-white text-xs font-bold gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
-                            Available
-                          </span>
-                        ) : (
-                          <CountdownBadge targetDate={member.nextEligibleDate} compact={true} />
-                        )}
-                      </td>
-
-                      {/* Admin Actions */}
-                      <td className="text-right">
-                        <div className="flex items-center justify-end gap-1 whitespace-nowrap">
-                          {/* Cooldown Toggle */}
-                          {member.isAvailable ? (
-                            <button
-                              onClick={() => handleMarkDonated(member._id)}
-                              className="btn btn-xs btn-outline border-amber-500 text-amber-700 hover:bg-amber-500 hover:text-white"
-                              title="Mark as Donated Blood Today"
-                            >
-                              <Droplet className="w-3 h-3 text-red-600" />
-                              Log Donation
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handleResetCooldown(member._id)}
-                              className="btn btn-xs btn-outline border-emerald-500 text-emerald-700 hover:bg-emerald-500 hover:text-white"
-                              title="Override and reset cooldown"
-                            >
-                              <RotateCcw className="w-3 h-3" />
-                              Reset Ready
-                            </button>
-                          )}
-
-                          {/* Edit Member */}
-                          <button
-                            onClick={() => setEditMember(member)}
-                            className="btn btn-xs btn-ghost text-slate-600 hover:text-blue-600"
-                            title="Edit Member Info"
-                          >
-                            <Edit className="w-3.5 h-3.5" />
-                          </button>
-
-                          {/* Delete Member */}
-                          <button
-                            onClick={() => handleDelete(member._id)}
-                            className="btn btn-xs btn-ghost text-slate-600 hover:text-red-600"
-                            title="Delete Member"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                  return (
+                    <div
+                      key={dist.name}
+                      onClick={() => handleApprovedDistrictClick(dist.name)}
+                      className={`cursor-pointer rounded-2xl p-2.5 text-center transition-colors duration-150 select-none ${
+                        isSelected
+                          ? "bg-red-600 text-white border-2 border-red-700 ring-2 ring-red-200"
+                          : "bg-white text-zinc-900 border border-zinc-200 hover:border-red-300 hover:bg-zinc-50"
+                      }`}
+                    >
+                      <span className={`block text-xs font-bold truncate ${isSelected ? "text-white" : "text-zinc-900"}`}>
+                        {dist.name}
+                      </span>
+                      <span
+                        className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          isSelected
+                            ? "bg-white/20 text-white"
+                            : dCount > 0
+                            ? "bg-red-50 text-red-700 border border-red-200"
+                            : "bg-zinc-100 text-zinc-500"
+                        }`}
+                      >
+                        {dCount} {dCount === 1 ? "Member" : "Members"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
+
+            {/* 2. CITIES UNDER SELECTED DISTRICT */}
+            <div className="border border-zinc-200 bg-white rounded-2xl p-4 sm:p-5 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-2 border-b border-zinc-100">
+                <div className="flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-zinc-600" />
+                  <h4 className="text-xs sm:text-sm font-bold text-zinc-900">
+                    2. Select City under {approvedDistrict} District:
+                  </h4>
+                </div>
+                <span className="text-[11px] text-zinc-500">
+                  Showing members in: <strong className="text-red-600">{approvedCity}</strong>
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
+                {(BANGLADESH_DISTRICTS.find((d) => d.name === approvedDistrict)?.cities || []).map((cityName) => {
+                  const isCitySelected = approvedCity === cityName;
+                  const cCount = getApprovedCityCount(approvedDistrict, cityName);
+
+                  return (
+                    <div
+                      key={cityName}
+                      onClick={() => setApprovedCity(cityName)}
+                      className={`cursor-pointer rounded-xl p-2.5 text-center border transition-colors duration-150 select-none ${
+                        isCitySelected
+                          ? "border-red-600 bg-red-50 text-red-900 font-bold"
+                          : "border-zinc-200 bg-zinc-50 hover:border-zinc-300 text-zinc-700 hover:bg-white"
+                      }`}
+                    >
+                      <span className="block text-xs font-bold truncate">{cityName}</span>
+                      <span
+                        className={`inline-block mt-1 text-[10px] font-bold px-1.5 py-0.2 rounded ${
+                          isCitySelected
+                            ? "bg-red-600 text-white"
+                            : cCount > 0
+                            ? "bg-red-100 text-red-700"
+                            : "bg-zinc-200 text-zinc-600"
+                        }`}
+                      >
+                        {cCount} Active
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Members Table */}
+            {filteredApproved.length === 0 ? (
+              <div className="py-12 bg-zinc-50 rounded-2xl border border-dashed border-zinc-300 text-center text-slate-400">
+                <Users className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                <p className="text-sm font-bold text-slate-700">No Approved Donors in {approvedCity}</p>
+                <p className="text-xs text-slate-400">
+                  No active members match the selected city or search filters.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="table table-sm w-full min-w-[760px] text-xs">
+                  <thead>
+                    <tr className="bg-slate-100 text-slate-700 font-bold">
+                      <th>Donor</th>
+                      <th>Blood Group</th>
+                      <th>NID &amp; Documents</th>
+                      <th>Contact &amp; Location</th>
+                      <th>Hospital</th>
+                      <th>Donations</th>
+                      <th>Status / 3-Month Cooldown</th>
+                      <th className="text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredApproved.map((member) => (
+                      <tr key={member._id} className="hover:bg-slate-50/80">
+                        {/* Name & Photo */}
+                        <td>
+                          <div className="flex items-center gap-2">
+                            {member.photo ? (
+                              <img
+                                src={member.photo}
+                                alt={member.name}
+                                className="w-8 h-8 rounded-full object-cover border"
+                              />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-red-100 text-red-700 font-bold flex items-center justify-center text-xs">
+                                {member.group}
+                              </div>
+                            )}
+                            <div>
+                              <span className="font-bold text-slate-900 block">{member.name}</span>
+                              <span className="text-[10px] text-slate-400">{member.email}</span>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Group */}
+                        <td>
+                          <span className="badge badge-error text-white font-extrabold text-xs">
+                            {member.group}
+                          </span>
+                        </td>
+
+                        {/* NID & Document inspection */}
+                        <td>
+                          <div className="space-y-1">
+                            {member.nid ? (
+                              <span className="badge badge-neutral badge-xs font-mono font-bold block truncate max-w-[130px]">
+                                NID: {member.nid}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-slate-400 italic block">No NID No</span>
+                            )}
+                            <div className="flex items-center gap-1">
+                              {member.nidPhoto && (
+                                <button
+                                  onClick={() => setViewDoc({ title: `NID Card - ${member.name}`, src: member.nidPhoto })}
+                                  className="btn btn-[10px] btn-xs btn-outline px-1.5 py-0 h-5 min-h-0 text-blue-600 gap-0.5"
+                                  title="Inspect NID Photo"
+                                >
+                                  <Eye className="w-2.5 h-2.5" /> NID
+                                </button>
+                              )}
+                              {member.medicalRecords?.testReportPhotos?.[0] && (
+                                <button
+                                  onClick={() =>
+                                    setViewDoc({
+                                      title: `Pathology Report - ${member.name}`,
+                                      src: member.medicalRecords.testReportPhotos[0],
+                                    })
+                                  }
+                                  className="btn btn-[10px] btn-xs btn-outline px-1.5 py-0 h-5 min-h-0 text-emerald-600 gap-0.5"
+                                  title="Inspect Pathology Report"
+                                >
+                                  <Eye className="w-2.5 h-2.5" /> Report
+                                </button>
+                              )}
+                              {!member.nidPhoto && !member.medicalRecords?.testReportPhotos?.[0] && (
+                                <span className="text-[10px] text-slate-400 italic">No files</span>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Contact & Location */}
+                        <td>
+                          <div className="tabular-nums text-slate-800">{member.contact}</div>
+                          <div className="text-[11px] text-slate-500 truncate max-w-[150px]">
+                            {member.location}
+                          </div>
+                        </td>
+
+                        {/* Hospital */}
+                        <td className="text-[11px] text-slate-600 truncate max-w-[180px]">
+                          {member.hospital || "General Hospital"}
+                        </td>
+
+                        {/* Donation count */}
+                        <td>
+                          <span className="badge badge-neutral text-xs font-bold">
+                            {member.donationCount || 0} Times
+                          </span>
+                        </td>
+
+                        {/* Cooldown Status (Point 8) */}
+                        <td>
+                          {member.isAvailable ? (
+                            <span className="badge badge-success text-white text-xs font-bold gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
+                              Available
+                            </span>
+                          ) : (
+                            <CountdownBadge targetDate={member.nextEligibleDate} compact={true} />
+                          )}
+                        </td>
+
+                        {/* Admin Actions */}
+                        <td className="text-right">
+                          <div className="flex items-center justify-end gap-1 whitespace-nowrap">
+                            {/* Cooldown Toggle */}
+                            {member.isAvailable ? (
+                              <button
+                                onClick={() => handleMarkDonated(member._id)}
+                                className="btn btn-xs btn-outline border-amber-500 text-amber-700 hover:bg-amber-500 hover:text-white"
+                                title="Mark as Donated Blood Today"
+                              >
+                                <Droplet className="w-3 h-3 text-red-600" />
+                                Log Donation
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleResetCooldown(member._id)}
+                                className="btn btn-xs btn-outline border-emerald-500 text-emerald-700 hover:bg-emerald-500 hover:text-white"
+                                title="Override and reset cooldown"
+                              >
+                                <RotateCcw className="w-3 h-3" />
+                                Reset Ready
+                              </button>
+                            )}
+
+                            {/* Edit Member */}
+                            <button
+                              onClick={() => setEditMember(member)}
+                              className="btn btn-xs btn-ghost text-slate-600 hover:text-blue-600"
+                              title="Edit Member Info & Documents"
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Delete Member */}
+                            <button
+                              onClick={() => handleDelete(member._id)}
+                              className="btn btn-xs btn-ghost text-slate-600 hover:text-red-600"
+                              title="Delete Member"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
 
@@ -799,13 +1139,15 @@ export default function AdminControl() {
               </p>
             </div>
 
-            <form onSubmit={handleUpdateAdminProfile} className="max-w-xl space-y-4">
+            <form onSubmit={handleUpdateAdminProfile} autoComplete="off" className="max-w-xl space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
                   Admin Display Name
                 </label>
                 <input
                   type="text"
+                  name="admin_name_edit"
+                  autoComplete="off"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="e.g. Master Admin"
@@ -822,6 +1164,8 @@ export default function AdminControl() {
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
                   <input
                     type="email"
+                    name="admin_email_edit"
+                    autoComplete="off"
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
                     placeholder="Enter new admin email"
@@ -839,6 +1183,8 @@ export default function AdminControl() {
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
                   <input
                     type={showNewPass ? "text" : "password"}
+                    name="admin_new_pass_edit"
+                    autoComplete="new-password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Enter new password (at least 6 characters)"
@@ -863,6 +1209,8 @@ export default function AdminControl() {
                   <Lock className="w-4 h-4 text-zinc-400 absolute left-3 top-3.5" />
                   <input
                     type={showCurrentPass ? "text" : "password"}
+                    name="admin_current_pass_verify"
+                    autoComplete="new-password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     placeholder="Verify with current password"
@@ -1017,6 +1365,132 @@ export default function AdminControl() {
                       </option>
                     ))}
                   </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  NID Card Number
+                </label>
+                <input
+                  type="text"
+                  value={editMember.nid || ""}
+                  onChange={(e) => setEditMember({ ...editMember, nid: e.target.value })}
+                  placeholder="Enter 10 to 17 digit NID number"
+                  className="input input-sm input-bordered w-full rounded-lg font-mono text-xs"
+                />
+              </div>
+
+              {/* Document Review & Modification in Edit Modal */}
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                <span className="block text-xs font-bold text-slate-800 uppercase">
+                  Identification & Medical Documents
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  {/* NID Photo Review & Update */}
+                  <div className="p-2 bg-white rounded-lg border border-slate-200 flex flex-col justify-between">
+                    <div>
+                      <span className="font-bold text-slate-700 block mb-1">NID Card Photo</span>
+                      {editMember.nidPhoto ? (
+                        <div className="flex items-center gap-2 mb-2">
+                          <img
+                            src={editMember.nidPhoto}
+                            alt="NID thumbnail"
+                            className="w-12 h-9 object-cover rounded border"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setViewDoc({
+                                title: `NID Photo - ${editMember.name}`,
+                                src: editMember.nidPhoto,
+                              })
+                            }
+                            className="btn btn-xs btn-outline text-blue-600 gap-1"
+                          >
+                            <Eye className="w-3 h-3" /> Inspect
+                          </button>
+                        </div>
+                      ) : (
+                        <p className="text-slate-400 italic mb-2">No NID Photo on record</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-500 font-bold mb-1">
+                        Replace / Upload NID:
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setEditMember((prev) => ({ ...prev, nidPhoto: reader.result }));
+                          };
+                          reader.readAsDataURL(file);
+                        }}
+                        className="file-input file-input-xs file-input-bordered w-full"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Pathology Test Report Photo Review & Update */}
+                  <div className="p-2 bg-white rounded-lg border border-slate-200 flex flex-col justify-between">
+                    <div>
+                      <span className="font-bold text-slate-700 block mb-1">Pathology Test Report</span>
+                      {editMember.medicalRecords?.testReportPhotos?.[0] ? (
+                        <div className="flex items-center gap-2 mb-2">
+                          <img
+                            src={editMember.medicalRecords.testReportPhotos[0]}
+                            alt="Report thumbnail"
+                            className="w-12 h-9 object-cover rounded border"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setViewDoc({
+                                title: `Pathology Report - ${editMember.name}`,
+                                src: editMember.medicalRecords.testReportPhotos[0],
+                              })
+                            }
+                            className="btn btn-xs btn-outline text-emerald-600 gap-1"
+                          >
+                            <Eye className="w-3 h-3" /> Inspect
+                          </button>
+                        </div>
+                      ) : (
+                        <p className="text-slate-400 italic mb-2">No Test Report on record</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-500 font-bold mb-1">
+                        Replace / Upload Report:
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setEditMember((prev) => ({
+                              ...prev,
+                              medicalRecords: {
+                                ...(prev.medicalRecords || {}),
+                                testReportPhotos: [reader.result],
+                              },
+                            }));
+                          };
+                          reader.readAsDataURL(file);
+                        }}
+                        className="file-input file-input-xs file-input-bordered w-full"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 

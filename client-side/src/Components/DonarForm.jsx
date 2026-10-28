@@ -37,11 +37,11 @@ const DonarForm = () => {
     dob: "",
     gender: "Male",
     weight: "",
-    district: "Rangpur",
-    city: "Dinajpur",
-    areaAddress: "Basher Hut, Dinajpur Sadar",
-    location: "Basher Hut, Dinajpur Sadar, Dinajpur",
-    hospital: "Dinajpur Sadar Hospital (250 Bed General Hospital)",
+    district: "",
+    city: "",
+    areaAddress: "",
+    location: "",
+    hospital: "",
     nid: "",
     smoking: false,
     drinking: false,
@@ -238,7 +238,7 @@ const DonarForm = () => {
         </div>
 
         {/* Application Form */}
-        <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-zinc-200 overflow-hidden">
+        <form onSubmit={handleSubmit} autoComplete="off" className="bg-white rounded-3xl border border-zinc-200 overflow-hidden">
           {/* STEP 1: Basic Information */}
           <div className="p-6 sm:p-8 border-b border-zinc-100">
             <div className="flex items-center gap-2 mb-6">
@@ -273,6 +273,7 @@ const DonarForm = () => {
                 <input
                   type="email"
                   name="email"
+                  autoComplete="new-email"
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="e.g. donor@gmail.com"
@@ -289,6 +290,7 @@ const DonarForm = () => {
                 <input
                   type="tel"
                   name="contact"
+                  autoComplete="tel"
                   value={formData.contact}
                   onChange={handleInputChange}
                   pattern="[0-9]{11}"
@@ -309,6 +311,7 @@ const DonarForm = () => {
                   <input
                     type={showPassword ? "text" : "password"}
                     name="password"
+                    autoComplete="new-password"
                     value={formData.password}
                     onChange={handleInputChange}
                     minLength={6}

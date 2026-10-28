@@ -36,6 +36,14 @@ export default function DonorPortal() {
   const [loginPassword, setLoginPassword] = useState("");
   const [showLoginPassword, setShowLoginPassword] = useState(false);
 
+  // Clear login inputs whenever viewing login form
+  useEffect(() => {
+    if (!currentDonor) {
+      setLoginEmail("");
+      setLoginPassword("");
+    }
+  }, [currentDonor]);
+
   // Edit / Resubmit form state
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState({});
@@ -116,6 +124,8 @@ export default function DonorPortal() {
   const handleDonorLogout = () => {
     logoutDonor();
     setDonor(null);
+    setLoginEmail("");
+    setLoginPassword("");
     showToast("Logged out of donor portal.", "info");
   };
 
@@ -279,7 +289,7 @@ export default function DonorPortal() {
               Access Your Application
             </h2>
 
-            <form onSubmit={handleDonorLogin} className="space-y-4">
+            <form onSubmit={handleDonorLogin} autoComplete="off" className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-zinc-700 mb-1">
                   Registered Email Address <span className="text-red-500">*</span>
@@ -288,6 +298,8 @@ export default function DonorPortal() {
                   <Mail className="w-4 h-4 text-zinc-400 absolute left-3 top-3.5" />
                   <input
                     type="email"
+                    name="donor_account_email"
+                    autoComplete="off"
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     placeholder="e.g. donor@gmail.com"
@@ -305,6 +317,8 @@ export default function DonorPortal() {
                   <Lock className="w-4 h-4 text-zinc-400 absolute left-3 top-3.5" />
                   <input
                     type={showLoginPassword ? "text" : "password"}
+                    name="donor_account_password"
+                    autoComplete="new-password"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     placeholder="Enter your password"

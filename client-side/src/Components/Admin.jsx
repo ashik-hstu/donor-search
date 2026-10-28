@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router";
 import { AdminContext } from "../context/AdminContext";
 import { Shield, Lock, Mail, ArrowRight, Eye, EyeOff } from "lucide-react";
@@ -10,6 +10,12 @@ const Admin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Clear inputs when entering the admin login page
+  useEffect(() => {
+    setEmail("");
+    setPassword("");
+  }, []);
 
   const { loginAdmin, showToast } = useContext(AdminContext);
   const navigate = useNavigate();
@@ -64,7 +70,7 @@ const Admin = () => {
             </div>
           )}
 
-          <form onSubmit={handleAdmin} className="space-y-4">
+          <form onSubmit={handleAdmin} autoComplete="off" className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-zinc-700 mb-1">
                 Admin Email
@@ -73,6 +79,8 @@ const Admin = () => {
                 <Mail className="w-4 h-4 text-zinc-400 absolute left-3 top-3.5" />
                 <input
                   type="email"
+                  name="admin_login_email"
+                  autoComplete="off"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@gmail.com"
@@ -90,6 +98,8 @@ const Admin = () => {
                 <Lock className="w-4 h-4 text-zinc-400 absolute left-3 top-3.5" />
                 <input
                   type={showPassword ? "text" : "password"}
+                  name="admin_login_password"
+                  autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter admin password"

@@ -9,7 +9,7 @@ import {
   HeartPulse, Stethoscope, Microscope,
   Sparkles, Quote, MapPin, Users, Phone, Check,
 } from "lucide-react";
-import { BLOOD_GROUPS, BLOOD_COMPATIBILITY } from "../data/hospitals";
+import { BLOOD_GROUPS } from "../data/hospitals";
 import { API_BASE_URL } from "../config/api";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -130,7 +130,6 @@ const REVIEWS_COL_2 = [
 const Home = () => {
   const containerRef = useRef(null);
   const [stats, setStats] = useState({ totalDonors: 14, totalAvailable: 11, totalDonations: 30, groups: [] });
-  const [selectedBlood, setSelectedBlood] = useState("O+");
 
   // Fetch backend donor statistics
   useEffect(() => {
@@ -1186,7 +1185,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── 8. BLOOD INVENTORY & COMPATIBILITY MATRIX ───────────────── */}
+      {/* ── 8. BLOOD INVENTORY OVERVIEW ───────────────── */}
       <section className="relative isolate py-24 bg-white border-t border-zinc-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 space-y-12">
           {/* Header */}
@@ -1194,11 +1193,11 @@ const Home = () => {
             <div className="space-y-2">
               <div className="section-label red">
                 <Activity className="w-3.5 h-3.5" />
-                Live Blood Bank Readiness &amp; Compatibility
+                Live Blood Bank Readiness
               </div>
               <h2 className="m-text-3 text-zinc-950">Select Blood Group for Instant Donors</h2>
               <p className="m-text-4 text-zinc-500 max-w-xl">
-                Check current voluntary volunteer availability in Dinajpur Sadar and inspect safe antigenic compatibility.
+                Check current voluntary volunteer availability in Dinajpur Sadar and search verified donors by proximity.
               </p>
             </div>
             <Link to="/searchDonar" className="m-btn-outline on-light shrink-0">
@@ -1214,8 +1213,7 @@ const Home = () => {
                 <Link
                   key={grp}
                   to={`/searchDonar?group=${encodeURIComponent(grp)}`}
-                  className={`p-4 rounded-2xl border text-center transition-all ${selectedBlood === grp ? "border-red-600 bg-red-50/50 shadow-md" : "border-zinc-200 bg-zinc-50/50 hover:border-red-300"}`}
-                  onClick={() => setSelectedBlood(grp)}
+                  className="p-4 rounded-2xl border text-center transition-all border-zinc-200 bg-zinc-50/50 hover:border-red-300 hover:bg-red-50/30"
                 >
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-2 font-black text-xl text-red-600 bg-white shadow-sm border border-zinc-200">
                     {grp}
@@ -1230,47 +1228,6 @@ const Home = () => {
               );
             })}
           </div>
-
-          {/* Compatibility matrix display */}
-          {BLOOD_COMPATIBILITY[selectedBlood] && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 rounded-3xl bg-zinc-50 border border-zinc-200">
-              <div className="bg-white p-6 rounded-2xl border border-zinc-200 space-y-3">
-                <span className="text-sm font-bold text-zinc-900 block">
-                  <span className="text-red-600 font-black">{selectedBlood}</span> Can Safely Donate Red Cells To:
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {BLOOD_COMPATIBILITY[selectedBlood].canGiveTo.map((g) => (
-                    <span key={g} className="px-3 py-1 rounded-xl font-black text-xs bg-red-50 text-red-800 border border-red-200">
-                      {g}
-                    </span>
-                  ))}
-                </div>
-                {BLOOD_COMPATIBILITY[selectedBlood].isUniversalDonor && (
-                  <span className="inline-block px-3 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                    Universal Red Cell Donor (Life-Saving in Trauma)
-                  </span>
-                )}
-              </div>
-
-              <div className="bg-white p-6 rounded-2xl border border-zinc-200 space-y-3">
-                <span className="text-sm font-bold text-zinc-900 block">
-                  <span className="text-red-600 font-black">{selectedBlood}</span> Can Safely Receive From:
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {BLOOD_COMPATIBILITY[selectedBlood].canReceiveFrom.map((g) => (
-                    <span key={g} className="px-3 py-1 rounded-xl font-black text-xs bg-zinc-100 text-zinc-800 border border-zinc-200">
-                      {g}
-                    </span>
-                  ))}
-                </div>
-                {BLOOD_COMPATIBILITY[selectedBlood].isUniversalRecipient && (
-                  <span className="inline-block px-3 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-800 border border-blue-200">
-                    Universal Recipient (Can Receive from All Groups)
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
         </div>
       </section>
 

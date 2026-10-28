@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
 import CountdownBadge from "./CountdownBadge";
-import { BANGLADESH_HOSPITALS, BLOOD_GROUPS, BANGLADESH_DISTRICTS } from "../data/hospitals";
+import { BANGLADESH_HOSPITALS, BLOOD_GROUPS, BANGLADESH_DISTRICTS, BLOOD_COMPATIBILITY } from "../data/hospitals";
 import { API_BASE_URL } from "../config/api";
 import {
   Search,
@@ -30,8 +30,8 @@ const SearchDonar = () => {
 
   // Search filter states (District & City separately, then Address Area & Hospital)
   const [selectedGroup, setSelectedGroup] = useState(urlGroup);
-  const [selectedDistrict, setSelectedDistrict] = useState("Rangpur");
-  const [selectedCity, setSelectedCity] = useState("Dinajpur");
+  const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
   const [searchArea, setSearchArea] = useState("");
   const [selectedHospital, setSelectedHospital] = useState("");
 
@@ -41,16 +41,28 @@ const SearchDonar = () => {
   // Executed search criteria (frozen when user clicks Search)
   const [activeSearch, setActiveSearch] = useState({
     group: "",
-    district: "Rangpur",
-    city: "Dinajpur",
+    district: "",
+    city: "",
     area: "",
     hospital: "",
   });
 
-  const handleDistrictChange = (dist) => {
-    setSelectedDistrict(dist);
-    const distObj = BANGLADESH_DISTRICTS.find((d) => d.name === dist);
-    setSelectedCity(distObj?.cities[0] || "");
+  const handleDistrictBoxClick = (distName) => {
+    if (selectedDistrict === distName) {
+      setSelectedDistrict("");
+      setSelectedCity("");
+    } else {
+      setSelectedDistrict(distName);
+      setSelectedCity("");
+    }
+  };
+
+  const handleCityBoxClick = (cityName) => {
+    if (selectedCity === cityName) {
+      setSelectedCity("");
+    } else {
+      setSelectedCity(cityName);
+    }
   };
 
   // Load stats and donors from server
@@ -112,15 +124,15 @@ const SearchDonar = () => {
   // Clear search and reset back to clean state
   const handleClearSearch = () => {
     setSelectedGroup("");
-    setSelectedDistrict("Rangpur");
-    setSelectedCity("Dinajpur");
+    setSelectedDistrict("");
+    setSelectedCity("");
     setSearchArea("");
     setSelectedHospital("");
     setHasSearched(false);
     setActiveSearch({
       group: "",
-      district: "Rangpur",
-      city: "Dinajpur",
+      district: "",
+      city: "",
       area: "",
       hospital: "",
     });
@@ -238,8 +250,8 @@ const SearchDonar = () => {
           </p>
         </div>
 
-        {/* 1. BLOOD GROUP SELECTOR */}
-        <div className="bg-white rounded-3xl border border-zinc-200 p-6 sm:p-8 space-y-4">
+        {/* 1. BLOOD GROUP SELECTOR & COMPATIBILITY MATRIX */}
+        <div className="bg-white rounded-3xl border border-zinc-200 p-6 sm:p-8 space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-sm sm:text-base font-bold text-zinc-900 flex items-center gap-2">
               <Droplet className="w-4 h-4 text-red-600 fill-red-600" />
@@ -313,18 +325,95 @@ const SearchDonar = () => {
               );
             })}
           </div>
+
+          {/* Blood Compatibility Guide for selected blood group */}
+          {selectedGroup && BLOOD_COMPATIBILITY[selectedGroup] && (
+            <div className="pt-2 border-t border-zinc-100 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-red-600" />
+                  Antigenic Compatibility &amp; Replacement Matrix for {selectedGroup}
+                </span>
+                <span className="text-[11px] text-zinc-500">
+                  What types can safely donate or receive in replacement of <strong>{selectedGroup}</strong>
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Can Donate To */}
+                <div className="bg-red-50/40 border border-red-200/80 rounded-2xl p-4 sm:p-5 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs sm:text-sm font-extrabold text-zinc-900">
+                      <span className="text-red-600 font-black">{selectedGroup}</span> Can Donate Red Cells To:
+                    </span>
+                    <span className="text-[10px] font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded-full">
+                      Recipient Types
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {BLOOD_COMPATIBILITY[selectedGroup].canGiveTo.map((g) => (
+                      <span
+                        key={g}
+                        className="px-3 py-1 rounded-xl font-black text-xs bg-white text-red-800 border border-red-200 shadow-sm"
+                      >
+                        {g}
+                      </span>
+                    ))}
+                  </div>
+                  {BLOOD_COMPATIBILITY[selectedGroup].isUniversalDonor && (
+                    <div className="inline-block px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
+                      Universal Red Cell Donor (Life-saving emergency transfusion)
+                    </div>
+                  )}
+                  <p className="text-[11px] text-zinc-500">
+                    A donor with <strong>{selectedGroup}</strong> can be transfused to any of the above patient blood groups.
+                  </p>
+                </div>
+
+                {/* Can Receive From */}
+                <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-4 sm:p-5 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs sm:text-sm font-extrabold text-zinc-900">
+                      Patient Needing <span className="text-red-600 font-black">{selectedGroup}</span> Can Receive From:
+                    </span>
+                    <span className="text-[10px] font-bold text-zinc-700 bg-zinc-200 px-2 py-0.5 rounded-full">
+                      Compatible Donors
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {BLOOD_COMPATIBILITY[selectedGroup].canReceiveFrom.map((g) => (
+                      <span
+                        key={g}
+                        className="px-3 py-1 rounded-xl font-black text-xs bg-white text-zinc-900 border border-zinc-300 shadow-sm"
+                      >
+                        {g}
+                      </span>
+                    ))}
+                  </div>
+                  {BLOOD_COMPATIBILITY[selectedGroup].isUniversalRecipient && (
+                    <div className="inline-block px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-100 text-blue-900 border border-blue-300">
+                      Universal Recipient (Can safely accept red cells from all groups)
+                    </div>
+                  )}
+                  <p className="text-[11px] text-zinc-500">
+                    When someone needs <strong>{selectedGroup}</strong> blood, voluntary donors of these groups can safely replace or match it.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* 2. SEARCH FORM */}
+        {/* 2. SEARCH FORM (EMERGENCY BLOOD DONOR STYLE: DISTRICT -> CITY -> AREA / HOSPITAL) */}
         <form
           onSubmit={handleSearchSubmit}
-          className="bg-white rounded-3xl border border-zinc-200 p-6 sm:p-8 space-y-5"
+          className="bg-white rounded-3xl border border-zinc-200 p-6 sm:p-8 space-y-6"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Navigation className="w-4 h-4 text-red-600" />
               <h2 className="text-sm sm:text-base font-extrabold text-zinc-900">
-                2. Select District, City, Address &amp; Hospital
+                2. Regional &amp; Vicinity Search (Emergency Style)
               </h2>
             </div>
             {hasSearched && (
@@ -338,98 +427,192 @@ const SearchDonar = () => {
             )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* 1. District Selection */}
-            <div>
-              <label className="block text-xs font-bold text-zinc-700 mb-1">
-                District / Division <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <MapPin className="w-4 h-4 text-red-600 absolute left-3 top-3.5" />
-                <select
-                  value={selectedDistrict}
-                  onChange={(e) => handleDistrictChange(e.target.value)}
-                  className="select select-bordered w-full pl-9 rounded-xl text-xs sm:text-sm font-bold text-zinc-800"
-                >
-                  {BANGLADESH_DISTRICTS.map((dist) => (
-                    <option key={dist.name} value={dist.name}>
+          {/* Emergency Style Step A: District boxes */}
+          <div className="space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <h3 className="text-xs sm:text-sm font-bold text-zinc-900 flex items-center gap-1.5">
+                <MapPin className="w-4 h-4 text-red-600" />
+                Step A: Select District (8 Administrative Divisions)
+              </h3>
+              <span className="text-xs text-zinc-500">
+                {selectedDistrict ? (
+                  <>
+                    Selected: <strong className="text-red-600 font-bold">{selectedDistrict}</strong>
+                  </>
+                ) : (
+                  <span className="text-zinc-400 italic">No district selected (Search all districts or choose one)</span>
+                )}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5 sm:gap-3">
+              {BANGLADESH_DISTRICTS.map((dist) => {
+                const isSelected = selectedDistrict === dist.name;
+                const distDonorsCount = donors.filter((d) => {
+                  const dDist = (d.district || "").toLowerCase();
+                  const dLoc = (d.location || "").toLowerCase();
+                  const target = dist.name.toLowerCase();
+                  return dDist === target || dLoc.includes(target);
+                }).length;
+
+                return (
+                  <div
+                    key={dist.name}
+                    onClick={() => handleDistrictBoxClick(dist.name)}
+                    className={`cursor-pointer rounded-2xl p-3 text-center transition-colors duration-150 select-none ${
+                      isSelected
+                        ? "bg-red-600 text-white border-2 border-red-700 ring-2 ring-red-200"
+                        : "bg-white text-zinc-900 border border-zinc-200 hover:border-red-300 hover:bg-zinc-50"
+                    }`}
+                  >
+                    <span
+                      className={`block text-xs sm:text-sm font-bold truncate ${
+                        isSelected ? "text-white" : "text-zinc-900"
+                      }`}
+                    >
                       {dist.name}
-                    </option>
-                  ))}
-                </select>
+                    </span>
+                    <span
+                      className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        isSelected
+                          ? "bg-white/20 text-white"
+                          : distDonorsCount > 0
+                          ? "bg-red-50 text-red-700 border border-red-200"
+                          : "bg-zinc-100 text-zinc-500"
+                      }`}
+                    >
+                      {distDonorsCount} {distDonorsCount === 1 ? "Donor" : "Donors"}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Emergency Style Step B: City boxes (under selected district) */}
+          {selectedDistrict && (
+            <div className="border border-zinc-200 bg-zinc-50/50 rounded-2xl p-4 sm:p-5 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-2 border-b border-zinc-200/60">
+                <div className="flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-zinc-600" />
+                  <h4 className="text-xs sm:text-sm font-bold text-zinc-900">
+                    Step B: Select City under {selectedDistrict} District
+                  </h4>
+                </div>
+                <span className="text-[11px] text-zinc-500">
+                  {selectedCity ? (
+                    <>
+                      Selected City: <strong className="text-red-600 font-bold">{selectedCity}</strong>
+                    </>
+                  ) : (
+                    <span className="text-zinc-400 italic">None selected (Click to narrow down)</span>
+                  )}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
+                {(BANGLADESH_DISTRICTS.find((d) => d.name === selectedDistrict)?.cities || []).map(
+                  (cityName) => {
+                    const isCitySelected = selectedCity === cityName;
+                    const cCount = donors.filter((d) => {
+                      const dDist = (d.district || "").toLowerCase();
+                      const dCity = (d.city || "").toLowerCase();
+                      const dLoc = (d.location || "").toLowerCase();
+                      const dHosp = (d.hospital || "").toLowerCase();
+                      const distMatches = dDist === selectedDistrict.toLowerCase() || dLoc.includes(selectedDistrict.toLowerCase());
+                      const cityMatches = dCity === cityName.toLowerCase() || dLoc.includes(cityName.toLowerCase()) || dHosp.includes(cityName.toLowerCase());
+                      return distMatches && cityMatches;
+                    }).length;
+
+                    return (
+                      <div
+                        key={cityName}
+                        onClick={() => handleCityBoxClick(cityName)}
+                        className={`cursor-pointer rounded-xl p-2.5 text-center border transition-colors duration-150 select-none ${
+                          isCitySelected
+                            ? "border-red-600 bg-red-50 text-red-900 font-bold shadow-sm"
+                            : "border-zinc-200 bg-white hover:border-zinc-300 text-zinc-700 hover:bg-zinc-50"
+                        }`}
+                      >
+                        <span className="block text-xs font-bold truncate">
+                          {cityName}
+                        </span>
+                        <span
+                          className={`inline-block mt-1 text-[10px] font-bold px-1.5 py-0.2 rounded ${
+                            isCitySelected
+                              ? "bg-red-600 text-white"
+                              : cCount > 0
+                              ? "bg-red-100 text-red-700"
+                              : "bg-zinc-100 text-zinc-500"
+                          }`}
+                        >
+                          {cCount} Donors
+                        </span>
+                      </div>
+                    );
+                  }
+                )}
               </div>
             </div>
+          )}
 
-            {/* 2. City Selection under selected District */}
-            <div>
-              <label className="block text-xs font-bold text-zinc-700 mb-1">
-                City / Sub-District <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <Building2 className="w-4 h-4 text-red-600 absolute left-3 top-3.5" />
-                <select
-                  value={selectedCity}
-                  onChange={(e) => setSelectedCity(e.target.value)}
-                  className="select select-bordered w-full pl-9 rounded-xl text-xs sm:text-sm font-bold text-zinc-800"
-                >
-                  {(BANGLADESH_DISTRICTS.find((d) => d.name === selectedDistrict)?.cities || []).map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
+          {/* Emergency Style Step C: Area Address & Nearby Hospital */}
+          <div className="space-y-2">
+            <h4 className="text-xs sm:text-sm font-bold text-zinc-900 flex items-center gap-1.5">
+              <Building2 className="w-4 h-4 text-zinc-600" />
+              Step C: Address Area &amp; Hospital Vicinity (Optional)
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Specific Area / Street Address */}
+              <div>
+                <label className="block text-xs font-bold text-zinc-700 mb-1">
+                  Area / Street / Thana
+                </label>
+                <div className="relative">
+                  <MapPin className="w-4 h-4 text-zinc-400 absolute left-3 top-3.5" />
+                  <input
+                    type="text"
+                    value={searchArea}
+                    onChange={(e) => setSearchArea(e.target.value)}
+                    placeholder="e.g. Basher Hut, Dinajpur Sadar, Hospital Road..."
+                    className="input input-bordered w-full pl-9 rounded-xl text-xs sm:text-sm bg-white"
+                  />
+                </div>
               </div>
-            </div>
 
-            {/* 3. Specific Area / Street Address (Optional) */}
-            <div>
-              <label className="block text-xs font-bold text-zinc-700 mb-1">
-                Area / Street (Optional)
-              </label>
-              <div className="relative">
-                <MapPin className="w-4 h-4 text-zinc-400 absolute left-3 top-3.5" />
-                <input
-                  type="text"
-                  value={searchArea}
-                  onChange={(e) => setSearchArea(e.target.value)}
-                  placeholder="e.g. Basher Hut, Sadar..."
-                  className="input input-bordered w-full pl-9 rounded-xl text-xs sm:text-sm"
-                />
-              </div>
-            </div>
-
-            {/* 4. Nearby Hospital (Optional) */}
-            <div>
-              <label className="block text-xs font-bold text-zinc-700 mb-1">
-                Nearby Hospital (Optional)
-              </label>
-              <div className="relative">
-                <Building2 className="w-4 h-4 text-zinc-400 absolute left-3 top-3.5" />
-                <select
-                  value={selectedHospital}
-                  onChange={(e) => setSelectedHospital(e.target.value)}
-                  className="select select-bordered w-full pl-9 rounded-xl text-xs sm:text-sm"
-                >
-                  <option value="">Any / Not Specific</option>
-                  <optgroup label="Government Hospitals">
-                    {BANGLADESH_HOSPITALS.filter((h) => h.type.includes("Government")).map(
-                      (hosp) => (
-                        <option key={hosp.name} value={hosp.name}>
-                          {hosp.name} ({hosp.district})
-                        </option>
-                      )
-                    )}
-                  </optgroup>
-                  <optgroup label="Private Hospitals & Clinics">
-                    {BANGLADESH_HOSPITALS.filter((h) => !h.type.includes("Government")).map(
-                      (hosp) => (
-                        <option key={hosp.name} value={hosp.name}>
-                          {hosp.name}
-                        </option>
-                      )
-                    )}
-                  </optgroup>
-                </select>
+              {/* Nearby Hospital */}
+              <div>
+                <label className="block text-xs font-bold text-zinc-700 mb-1">
+                  Nearby Hospital Vicinity
+                </label>
+                <div className="relative">
+                  <Building2 className="w-4 h-4 text-zinc-400 absolute left-3 top-3.5" />
+                  <select
+                    value={selectedHospital}
+                    onChange={(e) => setSelectedHospital(e.target.value)}
+                    className="select select-bordered w-full pl-9 rounded-xl text-xs sm:text-sm bg-white"
+                  >
+                    <option value="">Any / Not Specific</option>
+                    <optgroup label="Government Hospitals">
+                      {BANGLADESH_HOSPITALS.filter((h) => h.type.includes("Government")).map(
+                        (hosp) => (
+                          <option key={hosp.name} value={hosp.name}>
+                            {hosp.name} ({hosp.district})
+                          </option>
+                        )
+                      )}
+                    </optgroup>
+                    <optgroup label="Private Hospitals & Clinics">
+                      {BANGLADESH_HOSPITALS.filter((h) => !h.type.includes("Government")).map(
+                        (hosp) => (
+                          <option key={hosp.name} value={hosp.name}>
+                            {hosp.name}
+                          </option>
+                        )
+                      )}
+                    </optgroup>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -443,20 +626,20 @@ const SearchDonar = () => {
               </span>
               <span>•</span>
               <span className="font-bold text-zinc-900 bg-zinc-100 px-2.5 py-0.5 rounded-full">
-                {selectedDistrict} &gt; {selectedCity}
+                {selectedDistrict ? (selectedCity ? `${selectedDistrict} > ${selectedCity}` : selectedDistrict) : "All Districts"}
               </span>
               {searchArea && <span>• Area: {searchArea}</span>}
               {selectedHospital && <span>• Hospital: {selectedHospital}</span>}
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              {hasSearched && (
+              {(hasSearched || selectedDistrict || selectedCity || selectedGroup || searchArea || selectedHospital) && (
                 <button
                   type="button"
                   onClick={handleClearSearch}
                   className="btn btn-sm btn-outline border-zinc-300 rounded-full text-xs px-4"
                 >
-                  Clear
+                  Reset All
                 </button>
               )}
               <button
@@ -492,21 +675,18 @@ const SearchDonar = () => {
                 type="button"
                 onClick={() => {
                   setSelectedGroup("O+");
-                  setSelectedDistrict("Rangpur");
-                  setSelectedCity("Dinajpur");
-                  setSearchArea("Basher Hut, Dinajpur Sadar");
                   setActiveSearch({
                     group: "O+",
-                    district: "Rangpur",
-                    city: "Dinajpur",
-                    area: "Basher Hut, Dinajpur Sadar",
+                    district: "",
+                    city: "",
+                    area: "",
                     hospital: "",
                   });
                   setHasSearched(true);
                 }}
                 className="btn btn-sm btn-outline border-red-200 text-red-700 hover:bg-red-600 hover:text-white rounded-full text-xs font-bold px-4"
               >
-                Try: O+ in Basher Hut, Dinajpur Sadar, Dinajpur
+                Try Search: All O+ Donors Nationwide
               </button>
             </div>
           </div>
@@ -526,7 +706,7 @@ const SearchDonar = () => {
                 )}
                 {activeSearch.district && (
                   <span className="bg-zinc-900 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                    {activeSearch.district} &gt; {activeSearch.city}
+                    {activeSearch.city ? `${activeSearch.district} > ${activeSearch.city}` : activeSearch.district}
                   </span>
                 )}
                 {activeSearch.area && (
