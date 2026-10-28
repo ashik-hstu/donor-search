@@ -19,6 +19,8 @@ import {
   ArrowRight,
   Info,
   Navigation,
+  Lock,
+  RotateCcw,
 } from "lucide-react";
 
 const SearchDonar = () => {
@@ -62,6 +64,7 @@ const SearchDonar = () => {
   }, []);
 
   const handleDistrictBoxClick = (distName) => {
+    if (hasSearched) return;
     if (selectedDistrict === distName) {
       setSelectedDistrict("");
       setSelectedCity("");
@@ -72,6 +75,7 @@ const SearchDonar = () => {
   };
 
   const handleCityBoxClick = (cityName) => {
+    if (hasSearched) return;
     if (selectedCity === cityName) {
       setSelectedCity("");
     } else {
@@ -107,12 +111,18 @@ const SearchDonar = () => {
 
   // When clicking a blood group box, update selection in the form without auto-triggering search
   const handleGroupSelect = (group) => {
+    if (hasSearched) return;
     if (selectedGroup === group) {
       setSelectedGroup("");
       setIncludeCompatible(false);
     } else {
       setSelectedGroup(group);
     }
+  };
+
+  // Unlock selectors without clearing choices so user can adjust criteria
+  const handleUnlockForm = () => {
+    setHasSearched(false);
   };
 
   // Trigger search on form submit / clicking "Search Donors"
@@ -360,20 +370,38 @@ const SearchDonar = () => {
 
         {/* 1. BLOOD GROUP SELECTOR & COMPATIBILITY MATRIX */}
         <div className="bg-white rounded-3xl border border-zinc-200 p-6 sm:p-8 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm sm:text-base font-bold text-zinc-900 flex items-center gap-2">
-              <Droplet className="w-4 h-4 text-red-600 fill-red-600" />
-              1. Choose Blood Group
-            </h2>
-            {selectedGroup && (
-              <button
-                type="button"
-                onClick={() => handleGroupSelect(selectedGroup)}
-                className="btn btn-xs btn-ghost text-red-600 hover:bg-red-50 text-xs font-bold gap-1 rounded-full"
-              >
-                <X className="w-3 h-3" /> Deselect {selectedGroup}
-              </button>
-            )}
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h2 className="text-sm sm:text-base font-bold text-zinc-900 flex items-center gap-2">
+                <Droplet className="w-4 h-4 text-red-600 fill-red-600" />
+                1. Choose Blood Group
+              </h2>
+              {hasSearched && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200">
+                  <Lock className="w-3 h-3 text-amber-700" /> Selectors Locked to Active Search
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              {hasSearched ? (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="btn btn-xs btn-outline border-zinc-300 text-zinc-700 hover:text-red-700 hover:bg-red-50 text-xs font-bold gap-1 rounded-full"
+                >
+                  <RotateCcw className="w-3 h-3" /> Reset Form &amp; Re-enable
+                </button>
+              ) : selectedGroup ? (
+                <button
+                  type="button"
+                  onClick={() => handleGroupSelect(selectedGroup)}
+                  className="btn btn-xs btn-ghost text-red-600 hover:bg-red-50 text-xs font-bold gap-1 rounded-full"
+                >
+                  <X className="w-3 h-3" /> Deselect {selectedGroup}
+                </button>
+              ) : null}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5 sm:gap-3">
@@ -385,20 +413,26 @@ const SearchDonar = () => {
               const isSelected = selectedGroup === grp;
 
               return (
-                <div
+                <button
                   key={grp}
+                  type="button"
+                  disabled={hasSearched}
                   onClick={() => handleGroupSelect(grp)}
-                  className={`relative cursor-pointer rounded-2xl p-3.5 text-center transition-colors duration-150 select-none ${
-                    isSelected
-                      ? "bg-red-600 text-white border-2 border-red-700 ring-2 ring-red-200"
-                      : "bg-white hover:bg-zinc-50 border border-zinc-200 hover:border-red-400"
+                  className={`relative rounded-2xl p-3.5 text-center transition-all duration-150 select-none w-full ${
+                    hasSearched
+                      ? isSelected
+                        ? "bg-red-600 text-white border-2 border-red-700 ring-2 ring-red-200 cursor-not-allowed opacity-95 shadow-sm"
+                        : "bg-zinc-50 border border-zinc-200 text-zinc-400 opacity-40 grayscale cursor-not-allowed"
+                      : isSelected
+                      ? "cursor-pointer bg-red-600 text-white border-2 border-red-700 ring-2 ring-red-200 shadow-sm"
+                      : "cursor-pointer bg-white hover:bg-zinc-50 border border-zinc-200 hover:border-red-400"
                   }`}
                 >
                   {/* Blood Group Badge */}
                   <div className="flex items-center justify-center mb-1">
                     <span
                       className={`notranslate text-2xl sm:text-3xl font-black tracking-tight ${
-                        isSelected ? "text-white" : "text-zinc-900"
+                        isSelected ? "text-white" : hasSearched ? "text-zinc-400" : "text-zinc-900"
                       }`}
                       translate="no"
                     >
@@ -412,6 +446,8 @@ const SearchDonar = () => {
                       className={`inline-block text-[11px] font-bold px-2 py-0.5 rounded-full ${
                         isSelected
                           ? "bg-white/20 text-white"
+                          : hasSearched
+                          ? "bg-zinc-100 text-zinc-400"
                           : grpStat.available > 0
                           ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
                           : "bg-zinc-100 text-zinc-500"
@@ -429,7 +465,7 @@ const SearchDonar = () => {
                   >
                     {grpStat.total} Registered
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -440,7 +476,7 @@ const SearchDonar = () => {
           onSubmit={handleSearchSubmit}
           className="bg-white rounded-3xl border border-zinc-200 p-6 sm:p-8 space-y-6"
         >
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
               <Navigation className="w-4 h-4 text-red-600" />
               <h2 className="text-sm sm:text-base font-extrabold text-zinc-900">
@@ -451,9 +487,9 @@ const SearchDonar = () => {
               <button
                 type="button"
                 onClick={handleClearSearch}
-                className="btn btn-xs btn-ghost text-red-600 text-xs font-bold rounded-full"
+                className="btn btn-xs btn-ghost text-red-600 text-xs font-bold rounded-full gap-1"
               >
-                Reset Search
+                <RotateCcw className="w-3 h-3" /> Reset Form
               </button>
             )}
           </div>
@@ -461,10 +497,17 @@ const SearchDonar = () => {
           {/* Emergency Style Step A: District boxes */}
           <div className="space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-              <h3 className="text-xs sm:text-sm font-bold text-zinc-900 flex items-center gap-1.5">
-                <MapPin className="w-4 h-4 text-red-600" />
-                Step A: Select District (8 Administrative Divisions)
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-xs sm:text-sm font-bold text-zinc-900 flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-red-600" />
+                  Step A: Select District (8 Administrative Divisions)
+                </h3>
+                {hasSearched && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-900 border border-amber-200">
+                    <Lock className="w-2.5 h-2.5 text-amber-700" /> Locked
+                  </span>
+                )}
+              </div>
               <span className="text-xs text-zinc-500">
                 {selectedDistrict ? (
                   <>
@@ -488,18 +531,24 @@ const SearchDonar = () => {
                 }).length;
 
                 return (
-                  <div
+                  <button
                     key={dist.name}
+                    type="button"
+                    disabled={hasSearched}
                     onClick={() => handleDistrictBoxClick(dist.name)}
-                    className={`cursor-pointer rounded-2xl p-3 text-center transition-colors duration-150 select-none ${
-                      isSelected
-                        ? "bg-red-600 text-white border-2 border-red-700 ring-2 ring-red-200"
-                        : "bg-white text-zinc-900 border border-zinc-200 hover:border-red-300 hover:bg-zinc-50"
+                    className={`rounded-2xl p-3 text-center transition-all duration-150 select-none w-full ${
+                      hasSearched
+                        ? isSelected
+                          ? "bg-red-600 text-white border-2 border-red-700 ring-2 ring-red-200 cursor-not-allowed opacity-95 shadow-sm"
+                          : "bg-zinc-50 border border-zinc-200 text-zinc-400 opacity-40 grayscale cursor-not-allowed"
+                        : isSelected
+                        ? "cursor-pointer bg-red-600 text-white border-2 border-red-700 ring-2 ring-red-200 shadow-sm"
+                        : "cursor-pointer bg-white text-zinc-900 border border-zinc-200 hover:border-red-300 hover:bg-zinc-50"
                     }`}
                   >
                     <span
                       className={`block text-xs sm:text-sm font-bold truncate ${
-                        isSelected ? "text-white" : "text-zinc-900"
+                        isSelected ? "text-white" : hasSearched ? "text-zinc-400" : "text-zinc-900"
                       }`}
                     >
                       {dist.name}
@@ -508,6 +557,8 @@ const SearchDonar = () => {
                       className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
                         isSelected
                           ? "bg-white/20 text-white"
+                          : hasSearched
+                          ? "bg-zinc-100 text-zinc-400"
                           : distDonorsCount > 0
                           ? "bg-red-50 text-red-700 border border-red-200"
                           : "bg-zinc-100 text-zinc-500"
@@ -515,7 +566,7 @@ const SearchDonar = () => {
                     >
                       {distDonorsCount} {distDonorsCount === 1 ? "Donor" : "Donors"}
                     </span>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -530,6 +581,11 @@ const SearchDonar = () => {
                   <h4 className="text-xs sm:text-sm font-bold text-zinc-900">
                     Step B: Select City under {selectedDistrict} District
                   </h4>
+                  {hasSearched && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-900 border border-amber-200">
+                      <Lock className="w-2.5 h-2.5 text-amber-700" /> Locked
+                    </span>
+                  )}
                 </div>
                 <span className="text-[11px] text-zinc-500">
                   {selectedCity ? (
@@ -558,13 +614,19 @@ const SearchDonar = () => {
                     }).length;
 
                     return (
-                      <div
+                      <button
                         key={cityName}
+                        type="button"
+                        disabled={hasSearched}
                         onClick={() => handleCityBoxClick(cityName)}
-                        className={`cursor-pointer rounded-xl p-2.5 text-center border transition-colors duration-150 select-none ${
-                          isCitySelected
-                            ? "border-red-600 bg-red-50 text-red-900 font-bold shadow-sm"
-                            : "border-zinc-200 bg-white hover:border-zinc-300 text-zinc-700 hover:bg-zinc-50"
+                        className={`rounded-xl p-2.5 text-center border transition-all duration-150 select-none w-full ${
+                          hasSearched
+                            ? isCitySelected
+                              ? "border-red-600 bg-red-50 text-red-900 font-bold shadow-sm cursor-not-allowed opacity-95"
+                              : "border-zinc-200 bg-zinc-50 text-zinc-400 opacity-40 grayscale cursor-not-allowed"
+                            : isCitySelected
+                            ? "cursor-pointer border-red-600 bg-red-50 text-red-900 font-bold shadow-sm"
+                            : "cursor-pointer border-zinc-200 bg-white hover:border-zinc-300 text-zinc-700 hover:bg-zinc-50"
                         }`}
                       >
                         <span className="block text-xs font-bold truncate">
@@ -574,6 +636,8 @@ const SearchDonar = () => {
                           className={`inline-block mt-1 text-[10px] font-bold px-1.5 py-0.2 rounded ${
                             isCitySelected
                               ? "bg-red-600 text-white"
+                              : hasSearched
+                              ? "bg-zinc-100 text-zinc-400"
                               : cCount > 0
                               ? "bg-red-100 text-red-700"
                               : "bg-zinc-100 text-zinc-500"
@@ -581,7 +645,7 @@ const SearchDonar = () => {
                         >
                           {cCount} Donors
                         </span>
-                      </div>
+                      </button>
                     );
                   }
                 )}
@@ -606,9 +670,12 @@ const SearchDonar = () => {
                   <input
                     type="text"
                     value={searchArea}
+                    disabled={hasSearched}
                     onChange={(e) => setSearchArea(e.target.value)}
                     placeholder="e.g. Basher Hut, Dinajpur Sadar, Hospital Road..."
-                    className="input input-bordered w-full pl-9 rounded-xl text-xs sm:text-sm bg-white"
+                    className={`input input-bordered w-full pl-9 rounded-xl text-xs sm:text-sm transition-all ${
+                      hasSearched ? "bg-zinc-100 text-zinc-500 cursor-not-allowed opacity-60" : "bg-white"
+                    }`}
                   />
                 </div>
               </div>
@@ -622,8 +689,11 @@ const SearchDonar = () => {
                   <Building2 className="w-4 h-4 text-zinc-400 absolute left-3 top-3.5" />
                   <select
                     value={selectedHospital}
+                    disabled={hasSearched}
                     onChange={(e) => setSelectedHospital(e.target.value)}
-                    className="select select-bordered w-full pl-9 rounded-xl text-xs sm:text-sm bg-white"
+                    className={`select select-bordered w-full pl-9 rounded-xl text-xs sm:text-sm transition-all ${
+                      hasSearched ? "bg-zinc-100 text-zinc-500 cursor-not-allowed opacity-60" : "bg-white"
+                    }`}
                   >
                     <option value="">Any / Not Specific</option>
                     <optgroup label="Government Hospitals">
@@ -668,26 +738,54 @@ const SearchDonar = () => {
                   Compatible Types Included
                 </span>
               )}
+              {hasSearched && (
+                <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-0.5 rounded-full font-bold text-[11px]">
+                  <Lock className="w-3 h-3 text-amber-700" /> Selectors Locked
+                </span>
+              )}
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              {(selectedDistrict || selectedCity || selectedGroup || searchArea || selectedHospital || availabilityFilter !== "all" || includeCompatible || hasSearched) && (
-                <button
-                  type="button"
-                  onClick={handleClearSearch}
-                  className="btn btn-sm btn-outline border-zinc-300 rounded-full text-xs px-4"
-                >
-                  Reset Form
-                </button>
+              {hasSearched ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleUnlockForm}
+                    className="btn btn-sm btn-outline border-zinc-300 rounded-full text-xs px-4 text-zinc-700 hover:bg-zinc-100 font-bold"
+                  >
+                    Modify Selection
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleClearSearch}
+                    className="btn-roktika !min-h-0 !py-3 !px-6 !text-xs sm:!text-sm w-full sm:w-auto"
+                  >
+                    <RotateCcw className="w-4 h-4 shrink-0" />
+                    <span className="btn-label">Reset Form</span>
+                    <span className="btn-wave" aria-hidden="true"><i/><i/><i/></span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  {(selectedDistrict || selectedCity || selectedGroup || searchArea || selectedHospital || availabilityFilter !== "all" || includeCompatible) && (
+                    <button
+                      type="button"
+                      onClick={handleClearSearch}
+                      className="btn btn-sm btn-outline border-zinc-300 rounded-full text-xs px-4"
+                    >
+                      Clear
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    className="btn-roktika !min-h-0 !py-3 !px-6 !text-xs sm:!text-sm w-full sm:w-auto"
+                  >
+                    <Search className="w-4 h-4 shrink-0" />
+                    <span className="btn-label">Search Donors</span>
+                    <span className="btn-wave" aria-hidden="true"><i/><i/><i/></span>
+                  </button>
+                </>
               )}
-              <button
-                type="submit"
-                className="btn-roktika !min-h-0 !py-3 !px-6 !text-xs sm:!text-sm w-full sm:w-auto"
-              >
-                <Search className="w-4 h-4 shrink-0" />
-                <span className="btn-label">Search Donors</span>
-                <span className="btn-wave" aria-hidden="true"><i/><i/><i/></span>
-              </button>
             </div>
           </div>
         </form>
