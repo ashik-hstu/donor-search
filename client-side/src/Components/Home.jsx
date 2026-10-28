@@ -9,6 +9,7 @@ import {
   HeartPulse, Stethoscope, Microscope,
   Sparkles, Quote, MapPin, Users, Phone, Check,
   User, Zap, AlertTriangle, Droplet,
+  ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { BLOOD_GROUPS } from "../data/hospitals";
 import { API_BASE_URL } from "../config/api";
@@ -179,7 +180,15 @@ const REVIEWS_COL_2 = [
 
 const Home = () => {
   const containerRef = useRef(null);
+  const hospitalRailRef = useRef(null);
   const [stats, setStats] = useState({ totalDonors: 14, totalAvailable: 11, totalDonations: 30, groups: [] });
+
+  const scrollHospitalRail = (direction) => {
+    if (hospitalRailRef.current) {
+      const scrollAmount = direction === "left" ? -380 : 380;
+      hospitalRailRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
 
   // Fetch backend donor statistics
   useEffect(() => {
@@ -436,74 +445,27 @@ const Home = () => {
           .to(weightThumb, { x: 0, duration: 0.8 }, 1.45);
       }
 
-      // ─── Scene 6: Pinned Horizontal Hospital Track (scene:rooms) ──
+      // ─── Scene 6: Dinajpur Hospitals Showcase ──
       const roomsRoot = document.getElementById("rooms");
       if (roomsRoot) {
-        const hold = roomsRoot.querySelector(".rooms__hold");
-        const track = roomsRoot.querySelector(".rooms__track");
-        const places = [...track.querySelectorAll(".rooms__place")];
-        const lines = roomsRoot.querySelectorAll(".rooms__line");
-
-        roomsRoot.classList.add("is-track");
-        const travel = () => Math.max(0, track.scrollWidth - window.innerWidth);
-        const setTravel = () => gsap.set(roomsRoot, { "--rooms-travel": `${travel()}px` });
-        setTravel();
-        ScrollTrigger.addEventListener("refreshInit", setTravel);
-
-        const lead = () => Math.min(0.9, (window.innerWidth * 0.6) / track.scrollWidth);
-        const main = gsap.timeline({
-          defaults: { ease: "none" },
-          scrollTrigger: {
-            id: "rooms:horizontal",
-            trigger: hold,
-            start: "top top",
-            end: "bottom bottom",
-            scrub: true,
-            invalidateOnRefresh: true,
-          },
-        });
-
-        main.fromTo(track, { x: 0 }, { x: () => -travel(), duration: 1 }, 0)
-          .fromTo(lines, { strokeDasharray: 1, strokeDashoffset: () => 1 - lead() }, { strokeDashoffset: 0, duration: 1 }, 0);
-
-        places.forEach((place, index) => {
-          const image = place.querySelector("img");
-          const talk = place.querySelectorAll(".rooms__talk > *");
+        const cards = roomsRoot.querySelectorAll(".hospital-card");
+        if (cards.length > 0) {
           gsap.fromTo(
-            image,
-            { xPercent: 7 },
-            {
-              xPercent: 0,
-              ease: "none",
-              scrollTrigger: {
-                id: `rooms:photo-${index}`,
-                trigger: place,
-                containerAnimation: main,
-                start: "left right",
-                end: isWide ? "left 66%" : "left 40%",
-                scrub: true,
-              },
-            }
-          );
-          gsap.fromTo(
-            talk,
-            { y: 32, opacity: 0 },
+            cards,
+            { y: 35, opacity: 0 },
             {
               y: 0,
               opacity: 1,
+              duration: 0.6,
+              stagger: 0.1,
               ease: "power2.out",
-              stagger: 0.25,
               scrollTrigger: {
-                id: `rooms:talk-${index}`,
-                trigger: place,
-                containerAnimation: main,
-                start: "left 100%",
-                end: isWide ? "left 66%" : "left 40%",
-                scrub: true,
+                trigger: roomsRoot,
+                start: "top 75%",
               },
             }
           );
-        });
+        }
       }
 
       // ─── Scene 7: Asymmetric Parallax Columns (scene:voices) ──
@@ -1116,51 +1078,130 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── 5. SCENE: ROOMS — Horizontal Hospital Pinned Track ──────── */}
-      <section className="rooms on-dark relative isolate" id="rooms" data-8b-section="in-person" aria-labelledby="rooms-title">
+      {/* ── 5. SCENE: ROOMS — Dinajpur Regional Medical Centers & Hospitals ──────── */}
+      <section className="rooms on-dark relative isolate py-16 sm:py-24" id="rooms" data-8b-section="in-person" aria-labelledby="rooms-title">
         <div className="rooms__sheet m-band-4" aria-hidden="true"></div>
-        <div className="rooms__head max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-950/80 border border-red-500/40 text-red-300 text-xs font-bold mb-3">
-            <Building2 className="w-3.5 h-3.5 text-red-400" />
-            Dinajpur Regional Medical Centers &amp; Hospitals
+        
+        {/* Section Header */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 relative z-10 mb-8 sm:mb-12">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-6 border-b border-white/10">
+            <div className="max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-950/80 border border-red-500/40 text-red-300 text-xs font-bold mb-3 shadow-xs">
+                <Building2 className="w-3.5 h-3.5 text-red-400" />
+                Dinajpur Regional Medical Centers &amp; Hospitals
+              </div>
+              <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight" id="rooms-title">
+                Direct emergency liaison across premier hospitals in Dinajpur.
+              </h2>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 lg:max-w-md">
+              <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
+                Verified voluntary blood donors are positioned in immediate proximity to every key surgical center, government medical college, and university clinic.
+              </p>
+              
+              {/* Carousel Controls */}
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => scrollHospitalRail("left")}
+                  className="w-10 h-10 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 text-white flex items-center justify-center transition-colors cursor-pointer"
+                  aria-label="Previous hospital"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollHospitalRail("right")}
+                  className="w-10 h-10 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 text-white flex items-center justify-center transition-colors cursor-pointer"
+                  aria-label="Next hospital"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
           </div>
-          <h2 className="m-text-3" id="rooms-title">Direct emergency liaison across premier hospitals in Dinajpur.</h2>
-          <p className="m-text-4 rooms__lead">
-            Scroll vertically to traverse our Dinajpur partner network. Verified voluntary blood donors are positioned in immediate proximity to every key surgical center, government medical college, and university clinic.
-          </p>
         </div>
 
-        <div className="rooms__hold">
-          <div className="rooms__stage">
-            <p className="rooms__now"><i aria-hidden="true" />Regional Medical Emergency Network · Dinajpur Sadar</p>
-            <div className="rooms__track">
-              <svg className="rooms__lines" viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
-                <path className="rooms__line rooms__line--a" pathLength="1" d="M0 60C40 10 80 10 120 50S200 95 240 55 320 5 360 45 440 95 480 55 560 5 600 45 680 95 720 55 800 5 840 45 920 95 1000 50" />
-                <path className="rooms__line rooms__line--b" pathLength="1" d="M0 40C40 90 80 90 120 50S200 5 240 45 320 95 360 55 440 5 480 45 560 95 600 55 680 5 720 45 800 95 840 55 920 5 1000 50" />
-              </svg>
+        {/* Hospital Cards Rail */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 relative z-10">
+          <div
+            ref={hospitalRailRef}
+            className="flex items-stretch gap-5 sm:gap-6 overflow-x-auto pb-4 pt-1 scroll-smooth snap-x snap-mandatory"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            {HOSPITAL_PLACES.map((place) => (
+              <div
+                key={place.name}
+                className="hospital-card shrink-0 w-[290px] sm:w-[350px] lg:w-[380px] snap-start rounded-3xl overflow-hidden bg-zinc-900 border border-white/10 flex flex-col group hover:border-red-500/40 transition-all duration-300 shadow-xl"
+              >
+                {/* Hospital Photo */}
+                <div className="relative aspect-[16/10] overflow-hidden bg-zinc-800">
+                  <img
+                    src={place.image}
+                    alt={place.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/30 to-transparent" />
+                  
+                  {/* Badges on image */}
+                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-black/75 backdrop-blur-md text-white border border-white/15 shadow-xs">
+                      <MapPin className="w-3 h-3 text-red-500" />
+                      {place.distance} away
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-950/85 backdrop-blur-md text-emerald-300 border border-emerald-500/40 shadow-xs">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      {place.donors}
+                    </span>
+                  </div>
 
-              {HOSPITAL_PLACES.map((place, pIdx) => (
-                <figure key={place.name} className="rooms__place">
-                  <img src={place.image} alt={place.name} loading="lazy" />
-                  <span className="rooms__label text-white">{place.name} · {place.distance}</span>
-                  <Link
-                    to="/searchDonar?district=Dinajpur"
-                    className="absolute top-4 right-4 z-20 px-3 py-1 rounded-full bg-red-600/90 hover:bg-red-700 text-white text-[11px] font-bold border border-red-400/40 backdrop-blur-md transition-colors flex items-center gap-1 shadow-md"
-                  >
-                    <Search className="w-3 h-3 text-white" />
-                    <span>Search Donors</span>
-                  </Link>
-                  <div className="rooms__talk">
-                    {place.talks.map((t, tIdx) => (
-                      <p key={tIdx} className={t.isSelf ? "m-caption-2" : "m-caption"}>
-                        <span className="m-caption__wave" aria-hidden="true"><i /><i /><i /><i /></span>
-                        <span className="m-caption__text">{t.text}</span>
-                      </p>
+                  {/* Name overlay */}
+                  <div className="absolute bottom-3 left-4 right-4">
+                    <h3 className="text-base font-extrabold text-white leading-snug drop-shadow-sm">
+                      {place.name}
+                    </h3>
+                    <p className="text-xs text-zinc-300 mt-0.5 truncate drop-shadow-xs">
+                      {place.city}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Card Body: Triage Dialogues & Search CTA */}
+                <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-4 bg-zinc-900/90">
+                  <div className="space-y-2">
+                    <div className="text-[10px] font-bold tracking-wider text-zinc-400 uppercase flex items-center gap-1.5">
+                      <Activity className="w-3 h-3 text-red-500" />
+                      Live Triage &amp; Liaison Status
+                    </div>
+                    {place.talks.map((t, idx) => (
+                      <div
+                        key={idx}
+                        className={`p-2.5 rounded-xl text-xs leading-relaxed ${
+                          t.isSelf
+                            ? "bg-red-950/40 border border-red-500/25 text-red-200"
+                            : "bg-white/5 border border-white/10 text-zinc-300"
+                        }`}
+                      >
+                        <div className="text-[10px] font-bold text-zinc-400 mb-0.5">
+                          {t.sender}
+                        </div>
+                        <div>{t.text}</div>
+                      </div>
                     ))}
                   </div>
-                </figure>
-              ))}
-            </div>
+
+                  <Link
+                    to={`/searchDonar?district=Dinajpur&hospital=${encodeURIComponent(place.name)}`}
+                    className="w-full py-2.5 px-4 rounded-xl bg-white/10 hover:bg-red-600 text-white font-bold text-xs flex items-center justify-center gap-2 border border-white/10 hover:border-red-500 transition-all duration-200 shadow-sm"
+                  >
+                    <Search className="w-3.5 h-3.5" />
+                    <span>Search Donors for this Hospital</span>
+                  </Link>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
