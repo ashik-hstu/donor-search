@@ -209,9 +209,9 @@ const Home = () => {
         if (words.length) {
           gsap.fromTo(
             words,
-            { color: "rgba(255, 255, 255, 0.22)" },
+            { color: "rgba(24, 24, 27, 0.25)" },
             {
-              color: "#ffffff",
+              color: "#09090b",
               stagger: 0.12,
               ease: "none",
               scrollTrigger: {

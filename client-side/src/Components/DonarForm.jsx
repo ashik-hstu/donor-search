@@ -229,21 +229,21 @@ const DonarForm = () => {
             To ensure patient safety, all donor candidates undergo age verification, health qualification checks, and document review before approval.
           </p>
 
-          <div className="mt-4 inline-flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900 text-left max-w-xl mx-auto">
+          <div className="mt-4 inline-flex items-center gap-2.5 p-3.5 bg-amber-50/80 border border-amber-200 rounded-xl text-xs text-amber-900 text-left max-w-xl mx-auto shadow-2xs">
             <Info className="w-5 h-5 text-amber-600 shrink-0" />
             <div>
               <span className="font-bold">Approval Notice:</span> New registrations are placed on{" "}
-              <span className="badge badge-warning badge-sm font-bold">Pending Review</span>. You can track, preview, and resubmit documents up to 3 times in your Donor Portal.
+              <Badge variant="warning" size="sm" className="font-bold">Pending Review</Badge>. You can track, preview, and resubmit documents up to 3 times in your Donor Portal.
             </div>
           </div>
         </div>
 
         {/* Application Form */}
-        <form onSubmit={handleSubmit} autoComplete="off" className="bg-white rounded-3xl border border-zinc-200 overflow-hidden">
+        <form onSubmit={handleSubmit} autoComplete="off" className="bg-white rounded-3xl border border-zinc-200 shadow-xs overflow-hidden">
           {/* STEP 1: Basic Information */}
           <div className="p-6 sm:p-8 border-b border-zinc-100">
-            <div className="flex items-center gap-2 mb-6">
-              <span className="w-7 h-7 rounded-md bg-red-600 text-white font-bold flex items-center justify-center text-xs">
+            <div className="flex items-center gap-2.5 mb-6">
+              <span className="w-7 h-7 rounded-lg bg-red-600 text-white font-bold flex items-center justify-center text-xs shadow-2xs">
                 1
               </span>
               <h2 className="text-lg sm:text-xl font-bold text-zinc-900">Personal &amp; Contact Information</h2>
@@ -252,26 +252,25 @@ const DonarForm = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {/* Full Name */}
               <div>
-                <label className="block text-xs font-bold text-zinc-700 mb-1">
+                <label className="block text-xs font-bold text-zinc-700 mb-1.5">
                   Full Name <span className="text-red-500">*</span>
                 </label>
-                <input
+                <Input
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
                   placeholder="e.g. Dr. Rakib Hasan"
                   required
-                  className="input input-bordered w-full rounded-lg focus:border-red-500"
                 />
               </div>
 
               {/* Email */}
               <div>
-                <label className="block text-xs font-bold text-zinc-700 mb-1">
+                <label className="block text-xs font-bold text-zinc-700 mb-1.5">
                   Email Address <span className="text-red-500">*</span>
                 </label>
-                <input
+                <Input
                   type="email"
                   name="email"
                   autoComplete="new-email"
@@ -279,16 +278,15 @@ const DonarForm = () => {
                   onChange={handleInputChange}
                   placeholder="e.g. donor@gmail.com"
                   required
-                  className="input input-bordered w-full rounded-xl focus:border-red-500"
                 />
               </div>
 
               {/* Contact / Phone */}
               <div>
-                <label className="block text-xs font-bold text-zinc-700 mb-1">
+                <label className="block text-xs font-bold text-zinc-700 mb-1.5">
                   Contact / WhatsApp (11 Digits) <span className="text-red-500">*</span>
                 </label>
-                <input
+                <Input
                   type="tel"
                   name="contact"
                   autoComplete="tel"
@@ -298,18 +296,17 @@ const DonarForm = () => {
                   maxLength={11}
                   placeholder="01XXXXXXXXX"
                   required
-                  className="input input-bordered w-full rounded-lg focus:border-red-500"
                 />
                 <span className="text-[11px] text-zinc-500 mt-1 block">Format: 01711223344</span>
               </div>
 
               {/* Password with Seen / Visibility Toggle */}
               <div>
-                <label className="block text-xs font-bold text-zinc-700 mb-1">
+                <label className="block text-xs font-bold text-zinc-700 mb-1.5">
                   Portal Password <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
-                  <input
+                  <Input
                     type={showPassword ? "text" : "password"}
                     name="password"
                     autoComplete="new-password"
@@ -318,12 +315,12 @@ const DonarForm = () => {
                     minLength={6}
                     placeholder="At least 6 characters"
                     required
-                    className="input input-bordered w-full rounded-lg pr-10 focus:border-red-500"
+                    className="pr-10"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-zinc-400 hover:text-zinc-600 focus:outline-hidden"
+                    className="absolute right-3 top-2.5 text-zinc-400 hover:text-zinc-600 focus:outline-hidden cursor-pointer"
                     title={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? (
@@ -337,15 +334,15 @@ const DonarForm = () => {
 
               {/* Blood Group */}
               <div>
-                <label className="block text-xs font-bold text-zinc-700 mb-1">
+                <label className="block text-xs font-bold text-zinc-700 mb-1.5">
                   Blood Group <span className="text-red-500">*</span>
                 </label>
-                <select
+                <Select
                   name="group"
                   value={formData.group}
                   onChange={handleInputChange}
                   required
-                  className="select select-bordered w-full rounded-xl font-bold text-red-600 focus:border-red-500 notranslate"
+                  className="font-bold text-red-600 notranslate"
                   translate="no"
                 >
                   <option value="">Select Blood Group</option>
@@ -354,32 +351,31 @@ const DonarForm = () => {
                       {grp}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               {/* Gender */}
               <div>
-                <label className="block text-xs font-bold text-zinc-700 mb-1">
+                <label className="block text-xs font-bold text-zinc-700 mb-1.5">
                   Gender
                 </label>
-                <select
+                <Select
                   name="gender"
                   value={formData.gender}
                   onChange={handleInputChange}
-                  className="select select-bordered w-full rounded-lg"
                 >
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
-                </select>
+                </Select>
               </div>
             </div>
           </div>
 
           {/* STEP 2: Qualification & Age Check */}
           <div className="p-6 sm:p-8 border-b border-zinc-100 bg-red-50/20">
-            <div className="flex items-center gap-2 mb-6">
-              <span className="w-7 h-7 rounded-md bg-red-600 text-white font-bold flex items-center justify-center text-xs">
+            <div className="flex items-center gap-2.5 mb-6">
+              <span className="w-7 h-7 rounded-lg bg-red-600 text-white font-bold flex items-center justify-center text-xs shadow-2xs">
                 2
               </span>
               <h2 className="text-lg sm:text-xl font-bold text-zinc-900">
@@ -390,16 +386,15 @@ const DonarForm = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-4">
               {/* Date of Birth & Live Age calculation */}
               <div>
-                <label className="block text-xs font-bold text-zinc-700 mb-1">
+                <label className="block text-xs font-bold text-zinc-700 mb-1.5">
                   Date of Birth (Must be 18+) <span className="text-red-500">*</span>
                 </label>
-                <input
+                <Input
                   type="date"
                   name="dob"
                   value={formData.dob}
                   onChange={handleDobChange}
                   required
-                  className="input input-bordered w-full rounded-lg focus:border-red-500"
                 />
                 {calculatedAge !== null && (
                   <div className="mt-2 text-xs font-semibold flex items-center gap-1.5">
@@ -420,10 +415,10 @@ const DonarForm = () => {
 
               {/* Weight */}
               <div>
-                <label className="block text-xs font-bold text-zinc-700 mb-1">
+                <label className="block text-xs font-bold text-zinc-700 mb-1.5">
                   Body Weight (kg) <span className="text-red-500">*</span>
                 </label>
-                <input
+                <Input
                   type="number"
                   name="weight"
                   value={formData.weight}
@@ -432,9 +427,8 @@ const DonarForm = () => {
                   max={200}
                   placeholder="Minimum 45 kg (e.g. 60)"
                   required
-                  className="input input-bordered w-full rounded-xl focus:border-red-500"
                 />
-                <span className="text-[11px] text-gray-500 mt-1 block">
+                <span className="text-[11px] text-zinc-500 mt-1 block">
                   International standard: Donors must weigh at least 45 - 50 kg.
                 </span>
               </div>
@@ -442,7 +436,7 @@ const DonarForm = () => {
 
             {/* Age Warning banner if underage */}
             {ageWarning && (
-              <div className="p-4 bg-red-100 border border-red-200 rounded-lg flex items-start gap-2.5 text-xs text-red-800 mb-4">
+              <div className="p-4 bg-red-100 border border-red-200 rounded-xl flex items-start gap-2.5 text-xs text-red-800 mb-4 shadow-2xs">
                 <ShieldAlert className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                 <div>
                   <span className="font-bold">Age Restriction Error:</span> {ageWarning}
@@ -450,13 +444,13 @@ const DonarForm = () => {
               </div>
             )}
 
-            {/* Previous Blood Donation History (User Request) */}
+            {/* Previous Blood Donation History */}
             <div className="mt-4 pt-4 border-t border-red-200/60">
-              <label className="cursor-pointer label p-3.5 bg-white rounded-lg border border-red-200 flex items-center justify-between mb-3">
+              <div className="p-4 bg-white rounded-xl border border-red-200 flex items-center justify-between mb-3 shadow-2xs">
                 <div className="flex items-center gap-2.5">
-                  <History className="w-5 h-5 text-red-600" />
+                  <History className="w-5 h-5 text-red-600 shrink-0" />
                   <div>
-                    <span className="font-bold text-sm text-zinc-900 block">
+                    <span className="font-bold text-xs sm:text-sm text-zinc-900 block">
                       Have you donated blood before?
                     </span>
                     <span className="text-xs text-zinc-500">
@@ -464,37 +458,33 @@ const DonarForm = () => {
                     </span>
                   </div>
                 </div>
-                <input
-                  type="checkbox"
-                  name="hasDonatedBefore"
+                <Switch
                   checked={formData.hasDonatedBefore}
-                  onChange={handleInputChange}
-                  className="checkbox checkbox-error"
+                  onCheckedChange={(val) => setFormData((prev) => ({ ...prev, hasDonatedBefore: val }))}
                 />
-              </label>
+              </div>
 
               {formData.hasDonatedBefore && (
-                <div className="bg-white p-4 rounded-lg border border-red-200 space-y-3">
+                <div className="bg-white p-4 rounded-xl border border-red-200 space-y-3 shadow-2xs">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-zinc-700 mb-1">
+                      <label className="block text-xs font-bold text-zinc-700 mb-1.5">
                         Previous / Last Blood Donation Date <span className="text-red-500">*</span>
                       </label>
-                      <input
+                      <Input
                         type="date"
                         name="lastDonationDate"
                         value={formData.lastDonationDate}
                         onChange={handleInputChange}
                         required={formData.hasDonatedBefore}
-                        className="input input-bordered w-full rounded-lg text-xs sm:text-sm"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-zinc-700 mb-1">
+                      <label className="block text-xs font-bold text-zinc-700 mb-1.5">
                         Total Previous Donations
                       </label>
-                      <input
+                      <Input
                         type="number"
                         name="previousDonationCount"
                         min={1}
@@ -502,12 +492,12 @@ const DonarForm = () => {
                         value={formData.previousDonationCount || 1}
                         onChange={handleInputChange}
                         placeholder="e.g. 1, 3, 5"
-                        className="input input-bordered w-full rounded-xl text-xs sm:text-sm font-bold"
+                        className="font-bold"
                       />
                     </div>
                   </div>
 
-                  <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
+                  <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-start gap-2 shadow-2xs">
                     <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                     <div>
                       <strong>Medical Cooldown Protocol:</strong> If your previous donation was <strong>more than 90 days ago</strong>, you will be marked <em>Ready to Donate</em> immediately upon admin approval. If it was <strong>less than 90 days ago</strong>, your remaining cooldown countdown timer will be calculated automatically.
@@ -519,117 +509,104 @@ const DonarForm = () => {
           </div>
 
           {/* STEP 3: Medical Records & Bad Habits */}
-          <div className="p-6 sm:p-8 border-b border-gray-100">
-            <div className="flex items-center gap-2 mb-6">
-              <span className="w-7 h-7 rounded-full bg-red-600 text-white font-bold flex items-center justify-center text-xs">
+          <div className="p-6 sm:p-8 border-b border-zinc-100">
+            <div className="flex items-center gap-2.5 mb-6">
+              <span className="w-7 h-7 rounded-lg bg-red-600 text-white font-bold flex items-center justify-center text-xs shadow-2xs">
                 3
               </span>
-              <h2 className="text-xl font-bold text-gray-900">Medical Record & Habits Screening</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-zinc-900">Medical Record &amp; Habits Screening</h2>
             </div>
 
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Smoking */}
-                <label className="cursor-pointer label p-4 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-colors flex items-center justify-between">
+                <div className="p-4 bg-zinc-50 hover:bg-zinc-100/80 rounded-xl border border-zinc-200 transition-colors flex items-center justify-between shadow-2xs">
                   <div>
-                    <span className="font-bold text-sm text-gray-800 block">Smoking Habits</span>
-                    <span className="text-xs text-gray-500">Do you smoke cigarettes or tobacco?</span>
+                    <span className="font-bold text-xs sm:text-sm text-zinc-800 block">Smoking Habits</span>
+                    <span className="text-xs text-zinc-500">Do you smoke cigarettes or tobacco?</span>
                   </div>
-                  <input
-                    type="checkbox"
-                    name="smoking"
+                  <Switch
                     checked={formData.smoking}
-                    onChange={handleInputChange}
-                    className="toggle toggle-error"
+                    onCheckedChange={(val) => setFormData((prev) => ({ ...prev, smoking: val }))}
                   />
-                </label>
+                </div>
 
                 {/* Drinking */}
-                <label className="cursor-pointer label p-4 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-colors flex items-center justify-between">
+                <div className="p-4 bg-zinc-50 hover:bg-zinc-100/80 rounded-xl border border-zinc-200 transition-colors flex items-center justify-between shadow-2xs">
                   <div>
-                    <span className="font-bold text-sm text-gray-800 block">Drinking / Alcohol</span>
-                    <span className="text-xs text-gray-500">Do you consume alcohol regularly?</span>
+                    <span className="font-bold text-xs sm:text-sm text-zinc-800 block">Drinking / Alcohol</span>
+                    <span className="text-xs text-zinc-500">Do you consume alcohol regularly?</span>
                   </div>
-                  <input
-                    type="checkbox"
-                    name="drinking"
+                  <Switch
                     checked={formData.drinking}
-                    onChange={handleInputChange}
-                    className="toggle toggle-error"
+                    onCheckedChange={(val) => setFormData((prev) => ({ ...prev, drinking: val }))}
                   />
-                </label>
+                </div>
 
                 {/* Blood Allergy */}
-                <label className="cursor-pointer label p-4 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-colors flex items-center justify-between">
+                <div className="p-4 bg-zinc-50 hover:bg-zinc-100/80 rounded-xl border border-zinc-200 transition-colors flex items-center justify-between shadow-2xs">
                   <div>
-                    <span className="font-bold text-sm text-gray-800 block">Blood Allergy / Asthma</span>
-                    <span className="text-xs text-gray-500">Any active blood disorder or allergies?</span>
+                    <span className="font-bold text-xs sm:text-sm text-zinc-800 block">Blood Allergy / Asthma</span>
+                    <span className="text-xs text-zinc-500">Any active blood disorder or allergies?</span>
                   </div>
-                  <input
-                    type="checkbox"
-                    name="bloodAllergy"
+                  <Switch
                     checked={formData.bloodAllergy}
-                    onChange={handleInputChange}
-                    className="toggle toggle-error"
+                    onCheckedChange={(val) => setFormData((prev) => ({ ...prev, bloodAllergy: val }))}
                   />
-                </label>
+                </div>
 
                 {/* Recent Tattoo or Surgery */}
-                <label className="cursor-pointer label p-4 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-colors flex items-center justify-between">
+                <div className="p-4 bg-zinc-50 hover:bg-zinc-100/80 rounded-xl border border-zinc-200 transition-colors flex items-center justify-between shadow-2xs">
                   <div>
-                    <span className="font-bold text-sm text-gray-800 block">Recent Tattoo / Piercing / Surgery</span>
-                    <span className="text-xs text-gray-500">Within the last 6 months</span>
+                    <span className="font-bold text-xs sm:text-sm text-zinc-800 block">Recent Tattoo / Piercing / Surgery</span>
+                    <span className="text-xs text-zinc-500">Within the last 6 months</span>
                   </div>
-                  <input
-                    type="checkbox"
-                    name="recentTattooOrSurgery"
+                  <Switch
                     checked={formData.recentTattooOrSurgery}
-                    onChange={handleInputChange}
-                    className="toggle toggle-error"
+                    onCheckedChange={(val) => setFormData((prev) => ({ ...prev, recentTattooOrSurgery: val }))}
                   />
-                </label>
+                </div>
               </div>
 
               {/* Allergy / Chronic details if checked */}
               {formData.bloodAllergy && (
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">
+                  <label className="block text-xs font-bold text-zinc-700 uppercase mb-1.5">
                     Describe Allergy / Condition Details
                   </label>
-                  <input
+                  <Input
                     type="text"
                     name="allergyDetails"
                     value={formData.allergyDetails}
                     onChange={handleInputChange}
                     placeholder="e.g. Mild seasonal allergy, non-medicated"
-                    className="input input-bordered w-full rounded-xl text-sm"
                   />
                 </div>
               )}
 
               {/* Lab Screening confirmations */}
-              <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-lg space-y-3">
+              <div className="bg-emerald-50/80 border border-emerald-200 p-4 rounded-xl space-y-3 shadow-2xs">
                 <span className="text-xs font-bold text-emerald-800 block">
                   Pathology Confirmations (Mandatory for Transfusion Safety)
                 </span>
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <label className="flex items-center gap-2 text-xs font-semibold text-emerald-900 cursor-pointer">
+                  <label className="flex items-center gap-2 text-xs font-semibold text-emerald-900 cursor-pointer select-none">
                     <input
                       type="checkbox"
                       name="hivTest"
                       checked={formData.hivTest}
                       onChange={handleInputChange}
-                      className="checkbox checkbox-success checkbox-sm"
+                      className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-zinc-300 cursor-pointer"
                     />
                     <span>I confirm I am tested HIV Negative</span>
                   </label>
-                  <label className="flex items-center gap-2 text-xs font-semibold text-emerald-900 cursor-pointer">
+                  <label className="flex items-center gap-2 text-xs font-semibold text-emerald-900 cursor-pointer select-none">
                     <input
                       type="checkbox"
                       name="hepatitisTest"
                       checked={formData.hepatitisTest}
                       onChange={handleInputChange}
-                      className="checkbox checkbox-success checkbox-sm"
+                      className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-zinc-300 cursor-pointer"
                     />
                     <span>I confirm I am tested Hepatitis B/C Negative</span>
                   </label>
@@ -639,27 +616,27 @@ const DonarForm = () => {
           </div>
 
           {/* STEP 4: Document Uploads & Pictures */}
-          <div className="p-6 sm:p-8 border-b border-gray-100 bg-gray-50/50">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="w-7 h-7 rounded-full bg-red-600 text-white font-bold flex items-center justify-center text-xs">
+          <div className="p-6 sm:p-8 border-b border-zinc-100 bg-zinc-50/50">
+            <div className="flex items-center gap-2.5 mb-4">
+              <span className="w-7 h-7 rounded-lg bg-red-600 text-white font-bold flex items-center justify-center text-xs shadow-2xs">
                 4
               </span>
-              <h2 className="text-xl font-bold text-gray-900">
-                Document Uploads & Verification Evidence
+              <h2 className="text-lg sm:text-xl font-bold text-zinc-900">
+                Document Uploads &amp; Verification Evidence
               </h2>
             </div>
 
             {/* Medical Test Instructions Box */}
-            <div className="mb-6 bg-blue-50/70 border border-blue-200 rounded-xl p-4 sm:p-5">
+            <div className="mb-6 bg-blue-50/70 border border-blue-200 rounded-2xl p-4 sm:p-5 shadow-2xs">
               <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
                   <ClipboardCheck className="w-5 h-5" />
                 </div>
                 <div className="space-y-2.5 flex-1">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
                     <h3 className="text-sm font-extrabold text-blue-950 flex items-center gap-2">
                       Required Medical Screening Tests
-                      <span className="badge badge-error badge-xs text-white font-bold">Mandatory</span>
+                      <Badge variant="destructive" size="sm">Mandatory</Badge>
                     </h3>
                     <span className="text-[11px] font-bold text-red-800 bg-red-100 border border-red-300 px-2.5 py-0.5 rounded-full flex items-center gap-1 w-fit">
                       <AlertCircle className="w-3 h-3 text-red-600" />
@@ -673,27 +650,27 @@ const DonarForm = () => {
 
                   {/* List of Required Tests */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pt-1">
-                    <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-blue-100 text-xs text-gray-800 shadow-2xs">
+                    <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-blue-100 text-xs text-zinc-800 shadow-2xs">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span><strong>1. HIV 1 & 2:</strong> Screening (Negative)</span>
+                      <span><strong>1. HIV 1 &amp; 2:</strong> Screening (Negative)</span>
                     </div>
-                    <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-blue-100 text-xs text-gray-800 shadow-2xs">
+                    <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-blue-100 text-xs text-zinc-800 shadow-2xs">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                       <span><strong>2. Hepatitis B:</strong> HBsAg (Negative)</span>
                     </div>
-                    <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-blue-100 text-xs text-gray-800 shadow-2xs">
+                    <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-blue-100 text-xs text-zinc-800 shadow-2xs">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                       <span><strong>3. Hepatitis C:</strong> Anti-HCV (Negative)</span>
                     </div>
-                    <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-blue-100 text-xs text-gray-800 shadow-2xs">
+                    <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-blue-100 text-xs text-zinc-800 shadow-2xs">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                       <span><strong>4. Syphilis:</strong> VDRL / RPR (Non-reactive)</span>
                     </div>
-                    <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-blue-100 text-xs text-gray-800 shadow-2xs">
+                    <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-blue-100 text-xs text-zinc-800 shadow-2xs">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                       <span><strong>5. Malaria:</strong> MP Test (Negative)</span>
                     </div>
-                    <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-blue-100 text-xs text-gray-800 shadow-2xs">
+                    <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-blue-100 text-xs text-zinc-800 shadow-2xs">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                       <span><strong>6. Hemoglobin (CBC):</strong> Hb ≥ 12.5 g/dL</span>
                     </div>
@@ -717,72 +694,72 @@ const DonarForm = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               {/* National ID (NID) info and Document Upload */}
-              <div className="border-2 border-dashed border-gray-300 rounded-2xl p-4 text-center bg-white hover:border-red-400 transition-colors">
+              <div className="border border-dashed border-zinc-300 rounded-2xl p-4 text-center bg-white hover:border-red-400 transition-colors shadow-2xs">
                 <FileText className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                <span className="block text-xs font-bold text-gray-800 mb-1">
+                <span className="block text-xs font-bold text-zinc-800 mb-1">
                   NID Document Scan / Photo <span className="text-red-500">*</span>
                 </span>
-                <p className="text-[11px] text-gray-500 mb-3">Upload your National ID card photo</p>
-                <input
+                <p className="text-[11px] text-zinc-500 mb-3">Upload your National ID card photo</p>
+                <Input
                   type="text"
                   name="nid"
                   value={formData.nid}
                   onChange={handleInputChange}
                   placeholder="Enter NID Number"
                   required
-                  className="input input-sm input-bordered w-full rounded-lg mb-2 text-xs"
+                  className="mb-2 text-xs"
                 />
                 <input
                   type="file"
                   accept="image/*"
                   onChange={(e) => handleFileUpload(e, setNidPhoto)}
-                  className="file-input file-input-xs file-input-bordered w-full rounded-lg"
+                  className="block w-full text-xs text-zinc-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 cursor-pointer border border-zinc-200 rounded-xl bg-white p-1 shadow-2xs focus:outline-hidden"
                 />
                 {nidPhoto && (
                   <div className="mt-2 relative">
                     <img
                       src={nidPhoto}
                       alt="NID Preview"
-                      className="h-20 mx-auto rounded-lg object-cover border border-emerald-300 shadow-xs"
+                      className="h-20 mx-auto rounded-lg object-cover border border-emerald-300 shadow-2xs"
                     />
-                    <span className="badge badge-success badge-xs absolute top-1 right-1 font-bold">
+                    <Badge variant="success" size="sm" className="absolute top-1 right-1 shadow-xs">
                       Attached
-                    </span>
+                    </Badge>
                   </div>
                 )}
               </div>
 
               {/* Medical Test Results Report Upload (MANDATORY) */}
-              <div className="border-2 border-dashed border-red-300 rounded-2xl p-4 text-center bg-white hover:border-red-500 transition-colors">
+              <div className="border border-dashed border-red-300 rounded-2xl p-4 text-center bg-white hover:border-red-500 transition-colors shadow-2xs">
                 <Upload className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                <span className="block text-xs font-bold text-gray-800 mb-1">
+                <span className="block text-xs font-bold text-zinc-800 mb-1">
                   Medical Test Result Photo <span className="text-red-500">*</span>
                 </span>
-                <p className="text-[11px] text-gray-500 mb-2">
+                <p className="text-[11px] text-zinc-500 mb-2">
                   All tests consolidated on <strong>1 page</strong>
                 </p>
                 <div className="mb-2">
-                  <span className="text-[10px] bg-red-100 text-red-700 border border-red-200 px-2 py-0.5 rounded-full font-bold">
+                  <Badge variant="destructive" size="sm">
                     Mandatory Qualification *
-                  </span>
+                  </Badge>
                 </div>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={(e) => handleFileUpload(e, setTestReportPhoto)}
                   required
-                  className="file-input file-input-xs file-input-bordered w-full rounded-lg"
+                  className="block w-full text-xs text-zinc-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 cursor-pointer border border-zinc-200 rounded-xl bg-white p-1 shadow-2xs focus:outline-hidden"
                 />
                 {testReportPhoto ? (
                   <div className="mt-2 relative">
                     <img
                       src={testReportPhoto}
                       alt="Medical Report Preview"
-                      className="h-20 mx-auto rounded-lg object-cover border border-emerald-300 shadow-xs"
+                      className="h-20 mx-auto rounded-lg object-cover border border-emerald-300 shadow-2xs"
                     />
-                    <span className="badge badge-success badge-xs absolute top-1 right-1 font-bold">
+                    <Badge variant="success" size="sm" className="absolute top-1 right-1 shadow-xs">
                       Report Added
-                    </span>
+                    </Badge>
                   </div>
                 ) : (
                   <p className="text-[10px] text-red-500 font-semibold mt-2">
@@ -792,30 +769,30 @@ const DonarForm = () => {
               </div>
 
               {/* Donor Picture (Optional) */}
-              <div className="border-2 border-dashed border-gray-300 rounded-2xl p-4 text-center bg-white hover:border-red-400 transition-colors">
-                <User className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                <span className="block text-xs font-bold text-gray-800 mb-1">
+              <div className="border border-dashed border-zinc-300 rounded-2xl p-4 text-center bg-white hover:border-red-400 transition-colors shadow-2xs">
+                <User className="w-8 h-8 text-zinc-400 mx-auto mb-2" />
+                <span className="block text-xs font-bold text-zinc-800 mb-1">
                   Donor Profile Photo (Optional)
                 </span>
-                <p className="text-[11px] text-gray-500 mb-3">
+                <p className="text-[11px] text-zinc-500 mb-3">
                   Upload portrait for your donor badge
                 </p>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={(e) => handleFileUpload(e, setProfilePhoto)}
-                  className="file-input file-input-xs file-input-bordered w-full rounded-lg mt-8"
+                  className="block w-full text-xs text-zinc-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 cursor-pointer border border-zinc-200 rounded-xl bg-white p-1 shadow-2xs focus:outline-hidden mt-8"
                 />
                 {profilePhoto && (
                   <div className="mt-2 relative">
                     <img
                       src={profilePhoto}
                       alt="Profile Preview"
-                      className="h-20 w-20 mx-auto rounded-full object-cover border-2 border-red-500 shadow-xs"
+                      className="h-20 w-20 mx-auto rounded-full object-cover border-2 border-red-500 shadow-2xs"
                     />
-                    <span className="badge badge-success badge-xs absolute top-1 right-2 font-bold">
+                    <Badge variant="success" size="sm" className="absolute top-1 right-2 shadow-xs">
                       Photo Added
-                    </span>
+                    </Badge>
                   </div>
                 )}
               </div>
@@ -824,12 +801,12 @@ const DonarForm = () => {
 
           {/* STEP 5: Location & Hospital Vicinity (District & City Separately, then Address) */}
           <div className="p-6 sm:p-8">
-            <div className="flex items-center gap-2 mb-6">
-              <span className="w-7 h-7 rounded-full bg-red-600 text-white font-bold flex items-center justify-center text-xs">
+            <div className="flex items-center gap-2.5 mb-6">
+              <span className="w-7 h-7 rounded-lg bg-red-600 text-white font-bold flex items-center justify-center text-xs shadow-2xs">
                 5
               </span>
-              <h2 className="text-xl font-bold text-gray-900">
-                Location & Nearest Hospital Assignment
+              <h2 className="text-lg sm:text-xl font-bold text-zinc-900">
+                Location &amp; Nearest Hospital Assignment
               </h2>
             </div>
 
@@ -838,42 +815,42 @@ const DonarForm = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 {/* 1. District Selection */}
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">
+                  <label className="block text-xs font-bold text-zinc-700 mb-1.5">
                     1. District / Division <span className="text-red-500">*</span>
                   </label>
-                  <select
+                  <Select
                     name="district"
                     value={formData.district}
                     onChange={(e) => handleDistrictChange(e.target.value)}
                     required
-                    className="select select-bordered w-full rounded-lg focus:border-red-500 font-bold text-zinc-800"
+                    className="font-bold text-zinc-800"
                   >
                     {BANGLADESH_DISTRICTS.map((dist) => (
                       <option key={dist.name} value={dist.name}>
                         {dist.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
 
                 {/* 2. City Selection under selected District */}
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">
+                  <label className="block text-xs font-bold text-zinc-700 mb-1.5">
                     2. City / Sub-District <span className="text-red-500">*</span>
                   </label>
-                  <select
+                  <Select
                     name="city"
                     value={formData.city}
                     onChange={(e) => handleCityChange(e.target.value)}
                     required
-                    className="select select-bordered w-full rounded-lg focus:border-red-500 font-bold text-zinc-800"
+                    className="font-bold text-zinc-800"
                   >
                     {(BANGLADESH_DISTRICTS.find((d) => d.name === formData.district)?.cities || []).map((c) => (
                       <option key={c} value={c}>
                         {c}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
               </div>
 
@@ -881,17 +858,16 @@ const DonarForm = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 {/* 3. Detailed Specific Living Address */}
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">
+                  <label className="block text-xs font-bold text-zinc-700 mb-1.5">
                     3. Detailed Living Address / Area <span className="text-red-500">*</span>
                   </label>
-                  <input
+                  <Input
                     type="text"
                     name="areaAddress"
                     value={formData.areaAddress}
                     onChange={(e) => handleAreaAddressChange(e.target.value)}
                     placeholder="e.g. Basher Hut, Dinajpur Sadar"
                     required
-                    className="input input-bordered w-full rounded-lg focus:border-red-500"
                   />
                   <div className="flex flex-wrap items-center gap-1.5 mt-2 text-[11px] text-zinc-500">
                     <span className="font-semibold text-zinc-700">Full Location:</span>
@@ -903,23 +879,22 @@ const DonarForm = () => {
 
                 {/* 4. Nearest / Preferred Hospital Dropdown */}
                 <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">
+                  <label className="block text-xs font-bold text-zinc-700 mb-1.5">
                     4. Nearest / Preferred Hospital <span className="text-red-500">*</span>
                   </label>
-                  <select
+                  <Select
                     name="hospital"
                     value={formData.hospital}
                     onChange={handleInputChange}
                     required
-                    className="select select-bordered w-full rounded-lg focus:border-red-500"
                   >
                     {BANGLADESH_HOSPITALS.map((hosp) => (
                       <option key={hosp.name} value={hosp.name}>
                         {hosp.name} ({hosp.district})
                       </option>
                     ))}
-                  </select>
-                  <span className="text-[11px] text-gray-400 mt-1 block">
+                  </Select>
+                  <span className="text-[11px] text-zinc-400 mt-1 block">
                     Used for proximity matching when patients search near specific hospitals.
                   </span>
                 </div>
@@ -932,24 +907,25 @@ const DonarForm = () => {
                 By registering, you agree to our voluntary blood donation ethics and confirm that all medical reports are authentic.
               </div>
 
-              <button
+              <Button
                 type="submit"
+                size="lg"
                 disabled={loading || (calculatedAge !== null && calculatedAge < 18)}
-                className={`btn btn-lg w-full sm:w-auto px-8 rounded-full font-bold text-white transition-colors duration-150 ${
+                className={`w-full sm:w-auto px-8 rounded-full font-bold shadow-xs ${
                   calculatedAge !== null && calculatedAge < 18
-                    ? "btn-disabled bg-zinc-300"
-                    : "bg-red-600 hover:bg-red-700"
+                    ? "bg-zinc-300 text-zinc-500 cursor-not-allowed hover:bg-zinc-300"
+                    : "bg-red-600 hover:bg-red-700 text-white"
                 }`}
               >
                 {loading ? (
-                  <span className="loading loading-spinner"></span>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 ) : (
                   <>
                     <Droplet className="w-5 h-5 fill-white" />
                     Submit Donor Application
                   </>
                 )}
-              </button>
+              </Button>
             </div>
           </div>
         </form>
