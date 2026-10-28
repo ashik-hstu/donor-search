@@ -30,6 +30,20 @@ export const BANGLADESH_HOSPITALS = [
     phone: "0531-65432",
   },
   {
+    name: "Swadesh Diabetic Hospital & Diagnostic Centre",
+    district: "Dinajpur",
+    area: "Dinajpur Sadar",
+    type: "Specialized Non-Profit",
+    phone: "0531-64520",
+  },
+  {
+    name: "HSTU Medical Center",
+    district: "Dinajpur",
+    area: "Basher Hat, Dinajpur Sadar, Dinajpur",
+    type: "University Health Center",
+    phone: "01713-493100",
+  },
+  {
     name: "Rangpur Medical College Hospital (RpMCH)",
     district: "Rangpur",
     area: "Rangpur Sadar",

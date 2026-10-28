@@ -53,9 +53,18 @@ const SearchDonar = () => {
   // Sync state if URL query params change (e.g. from navbar, homepage links, or back/forward)
   useEffect(() => {
     const g = searchParams.get("group") || "";
-    setSelectedGroup(g);
-    if (g) {
-      setActiveSearch((prev) => ({ ...prev, group: g }));
+    const d = searchParams.get("district") || "";
+    const h = searchParams.get("hospital") || "";
+    if (g) setSelectedGroup(g);
+    if (d) setSelectedDistrict(d);
+    if (h) setSelectedHospital(h);
+    if (g || d || h) {
+      setActiveSearch((prev) => ({
+        ...prev,
+        ...(g && { group: g }),
+        ...(d && { district: d }),
+        ...(h && { hospital: h }),
+      }));
       setHasSearched(true);
     }
   }, [searchParams]);

@@ -23,58 +23,58 @@ const READ_ALONG_WORDS = [
 
 const HOSPITAL_PLACES = [
   {
-    name: "M Abdur Rahim Medical College",
-    city: "Dinajpur Sadar",
+    name: "M Abdur Rahim Medical College Hospital",
+    city: "Medical College Road, Dinajpur",
     distance: "3.2 km",
-    donors: "14 Available",
-    image: "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=800&q=80",
+    donors: "18 Available",
+    image: "/dinajpur/abdur-rahim-medical.jpg",
     talks: [
-      { sender: "Physician", text: "ICU Trauma Bed 4: 2 Bags O- Urgently Requested" },
-      { sender: "System", text: "Matched with screened donor Tanvir (ETA 18m)", isSelf: true },
+      { sender: "Transfusion Unit", text: "ICU Trauma Bed 4: 2 Bags O- Urgently Requested" },
+      { sender: "Roktika Dispatch", text: "Matched with screened donor Tanvir (ETA 16m)", isSelf: true },
     ]
   },
   {
-    name: "Dinajpur General Hospital",
-    city: "Hospital Road",
-    distance: "2.1 km",
+    name: "Dinajpur Sadar General Hospital (250 Bed)",
+    city: "Hospital Road, Munshipara, Dinajpur",
+    distance: "1.8 km",
+    donors: "12 Available",
+    image: "/dinajpur/dinajpur-sadar-hospital.jpg",
+    talks: [
+      { sender: "Maternal Ward", text: "Obstetric emergency: A+ fresh whole blood needed bedside" },
+      { sender: "Roktika Dispatch", text: "2 donors notified · 1 accepted emergency dispatch", isSelf: true },
+    ]
+  },
+  {
+    name: "Zia Heart Foundation Hospital & Research Institute",
+    city: "Ghashipara, Dinajpur",
+    distance: "2.4 km",
     donors: "9 Available",
-    image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80",
+    image: "/dinajpur/zia-heart-foundation.jpg",
     talks: [
-      { sender: "Maternal Unit", text: "Obstetric emergency: A+ fresh whole blood needed" },
-      { sender: "System", text: "2 donors notified · 1 accepted dispatch", isSelf: true },
+      { sender: "Cardiac Surgery ICU", text: "Open bypass standby: 3 Bags B+ verified fresh cells" },
+      { sender: "Roktika Dispatch", text: "Local voluntary donor standby confirmed", isSelf: true },
     ]
   },
   {
-    name: "Basher Hut Community Clinic",
-    city: "Basher Hut Area",
-    distance: "5.8 km",
-    donors: "6 Available",
-    image: "https://images.unsplash.com/photo-1538108149393-fbbd81895907?auto=format&fit=crop&w=800&q=80",
+    name: "Swadesh Diabetic Hospital & Diagnostic Centre",
+    city: "Jail Road, Dinajpur",
+    distance: "2.9 km",
+    donors: "8 Available",
+    image: "/dinajpur/swadesh-diabetic-hospital.jpg",
     talks: [
-      { sender: "Rural Liaison", text: "Emergency surgery standby confirmed" },
-      { sender: "System", text: "Local volunteer donor roster active", isSelf: true },
+      { sender: "Nephrology Ward", text: "Dialysis patient with acute anemia: O+ emergency" },
+      { sender: "Roktika Dispatch", text: "Volunteer contacted · Direct liaison activated", isSelf: true },
     ]
   },
   {
-    name: "Rangpur Medical College Hospital",
-    city: "Rangpur Division",
-    distance: "Division-wide",
-    donors: "28 Standby",
-    image: "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80",
+    name: "HSTU Medical Center (University Campus)",
+    city: "Basher Hat, Dinajpur",
+    distance: "5.5 km",
+    donors: "15 Available",
+    image: "/dinajpur/hstu-medical-center.jpg",
     talks: [
-      { sender: "Transfusion Chief", text: "Rare B- negative emergency triage dispatch" },
-      { sender: "System", text: "Inter-district courier coordinated", isSelf: true },
-    ]
-  },
-  {
-    name: "Setabganj Upazila Health Complex",
-    city: "Setabganj",
-    distance: "22 km",
-    donors: "5 Available",
-    image: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=800&q=80",
-    talks: [
-      { sender: "Ward Doctor", text: "Severe anemia patient transfusion required" },
-      { sender: "System", text: "Screened donor rest cooldown verified", isSelf: true },
+      { sender: "Campus Clinic", text: "Student volunteer emergency blood squad activated" },
+      { sender: "Roktika Dispatch", text: "Youth donor registry synchronized with Sadar Hospital", isSelf: true },
     ]
   }
 ];
@@ -82,23 +82,24 @@ const HOSPITAL_PLACES = [
 const REVIEWS_COL_1 = [
   {
     name: "Kamrul Islam",
-    role: "Patient Relative · Dinajpur Sadar",
+    role: "Patient Relative · Balubari, Dinajpur",
     stars: 5,
-    text: "When my sister suffered acute postpartum hemorrhage at M Abdur Rahim Medical College, the blood bank had zero O-. Roktika matched two voluntary donors in 22 minutes. She survived because someone arrived at midnight.",
+    text: "When my sister suffered acute postpartum hemorrhage at M Abdur Rahim Medical College Hospital, the blood bank had zero O-. Roktika matched two voluntary donors in 22 minutes. She survived because someone arrived at midnight.",
     badge: "Emergency Match"
   },
   {
-    name: "Dr. Nazmul Hossain",
-    role: "Trauma ICU Resident",
+    name: "Dr. Senjuti Humaira",
+    role: "Consultant Hematologist · M Abdur Rahim Medical College, Dinajpur",
+    photo: "/dinajpur/doctor-senjuti-humaira.jpg",
     stars: 5,
-    text: "Having the 5-panel pathology clearance certificate already pre-verified saved us 40 precious minutes in crossmatching bedside. This platform is a clinical miracle for Northern Bangladesh.",
+    text: "For thalassemia and acute leukemia patients in Northern Bangladesh, having pre-verified voluntary donors with 5-panel pathology clearance saves crucial hours during bedside crossmatching. This is saving lives daily in Dinajpur.",
     badge: "Clinical Verification"
   },
   {
-    name: "Rafiqul Basher",
-    role: "Community Volunteer",
+    name: "Rafiqul Islam Basher",
+    role: "Community Blood Coordinator · Dinajpur Sadar",
     stars: 5,
-    text: "The instant SMS alert rings directly when an emergency arises nearby. No spam, only genuine hospital cases verified by certified doctors.",
+    text: "The instant SMS alert rings directly when an emergency arises nearby. No spam, only genuine hospital cases verified by certified doctors across Dinajpur.",
     badge: "Proximity Alert"
   }
 ];
@@ -106,24 +107,24 @@ const REVIEWS_COL_1 = [
 const REVIEWS_COL_2 = [
   {
     name: "Tanvir Ahmed",
-    role: "Voluntary Donor · 14 Donations",
+    role: "Voluntary Donor · 14 Donations · Ghashipara, Dinajpur",
     stars: 5,
-    text: "I have donated 14 times over 4 years. The automated 90-day cooldown reminds me exactly when my erythrocyte count is restored. There is no dizziness or fatigue — only the joy of keeping someone alive.",
+    text: "I have donated 14 times over 4 years across Dinajpur hospitals. The automated 90-day cooldown reminds me exactly when my erythrocyte count is restored. There is no dizziness or fatigue — only the joy of keeping someone alive.",
     badge: "14th Donation Hero"
   },
   {
-    name: "Dr. Farhana Yasmin",
-    role: "Hematology Dept Liaison",
+    name: "Prof. Dr. Shah Md. Sarwer Jahan",
+    role: "Professor of Internal Medicine · Dinajpur",
     stars: 5,
-    text: "Roktika strictly honors WHO transfusion interval rules. Donors cannot be called prematurely, ensuring that donor health is protected just as much as patient safety.",
-    badge: "Donor Safeguard"
+    text: "Roktika strictly honors WHO transfusion interval rules. Donors cannot be called prematurely, ensuring that voluntary donor health is protected just as rigorously as patient safety.",
+    badge: "Medical Safeguard"
   },
   {
     name: "Shamim Reza",
-    role: "Student Volunteer · HSTU",
+    role: "Student Volunteer Leader · HSTU, Dinajpur",
     stars: 5,
-    text: "Registered between classes. Received an emergency ping 3 weeks later, walked across to Dinajpur Sadar Hospital, and helped save a dengue patient with platelet transfusion.",
-    badge: "Youth Volunteer"
+    text: "Registered between classes at Hajee Mohammad Danesh Science & Technology University. Received an emergency ping 3 weeks later, walked across to Dinajpur Sadar Hospital, and helped save a dengue patient with fresh platelets.",
+    badge: "HSTU Volunteer"
   }
 ];
 
@@ -586,7 +587,7 @@ const Home = () => {
         >
           <video
             src="/hero-video.mp4"
-            poster="https://images.unsplash.com/photo-1615461066841-6116e61058f4?auto=format&fit=crop&w=1600&q=80"
+            poster="/dinajpur/abdur-rahim-medical.jpg"
             autoPlay
             loop
             muted
@@ -1002,9 +1003,13 @@ const Home = () => {
       <section className="rooms on-dark relative isolate" id="rooms" data-8b-section="in-person" aria-labelledby="rooms-title">
         <div className="rooms__sheet m-band-4" aria-hidden="true"></div>
         <div className="rooms__head max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 relative z-10">
-          <h2 className="m-text-3" id="rooms-title">Active across major hospitals in Dinajpur.</h2>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-950/80 border border-red-500/40 text-red-300 text-xs font-bold mb-3">
+            <Building2 className="w-3.5 h-3.5 text-red-400" />
+            Dinajpur Regional Medical Centers &amp; Hospitals
+          </div>
+          <h2 className="m-text-3" id="rooms-title">Direct emergency liaison across premier hospitals in Dinajpur.</h2>
           <p className="m-text-4 rooms__lead">
-            Scroll vertically to traverse our regional partner centers. Verified voluntary blood donors are positioned in proximity to every key surgical hospital.
+            Scroll vertically to traverse our Dinajpur partner network. Verified voluntary blood donors are positioned in immediate proximity to every key surgical center, government medical college, and university clinic.
           </p>
         </div>
 
@@ -1021,6 +1026,13 @@ const Home = () => {
                 <figure key={place.name} className="rooms__place">
                   <img src={place.image} alt={place.name} loading="lazy" />
                   <span className="rooms__label text-white">{place.name} · {place.distance}</span>
+                  <Link
+                    to="/searchDonar?district=Dinajpur"
+                    className="absolute top-4 right-4 z-20 px-3 py-1 rounded-full bg-red-600/90 hover:bg-red-700 text-white text-[11px] font-bold border border-red-400/40 backdrop-blur-md transition-colors flex items-center gap-1 shadow-md"
+                  >
+                    <Search className="w-3 h-3 text-white" />
+                    <span>Search Donors</span>
+                  </Link>
                   <div className="rooms__talk">
                     {place.talks.map((t, tIdx) => (
                       <p key={tIdx} className={t.isSelf ? "m-caption-2" : "m-caption"}>
@@ -1048,21 +1060,26 @@ const Home = () => {
             <figure className="voices__expert">
               <div className="voices__photo">
                 <img
-                  src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=800&q=80"
-                  alt="Dr. M. A. Haque, Clinical Transfusion Specialist"
+                  src="/dinajpur/doctor-kamrul-hasan.jpg"
+                  alt="Dr. A B M Kamrul Hasan, Head of Transfusion Medicine, M Abdur Rahim Medical College Hospital Dinajpur"
                   loading="lazy"
                 />
               </div>
               <blockquote className="voices__quote" data-8b-motion="readAlong">
-                <p>“Pre-screening candidates for the 5 mandatory transfusion-transmissible infections eliminates bedside delays and ensures zero contamination. Roktika has become an essential emergency lifeline for our trauma ICU.”</p>
+                <p>“Pre-screening candidates for the 5 mandatory transfusion-transmissible infections and strictly enforcing the 90-day rest interval ensures zero clinical compromise. Roktika has become an invaluable emergency lifeline for M Abdur Rahim Medical College Hospital and the entire Dinajpur region.”</p>
               </blockquote>
               <figcaption className="voices__who">
                 <span className="voices__badge" aria-hidden="true">
                   <Stethoscope className="w-5 h-5 text-red-600" />
                 </span>
                 <div>
-                  <div className="font-bold text-zinc-900">Dr. M. A. Haque</div>
-                  <span className="text-xs text-zinc-500">Assoc. Professor · Transfusion Medicine</span>
+                  <div className="font-bold text-zinc-900 text-sm sm:text-base">Dr. A B M Kamrul Hasan</div>
+                  <span className="text-xs text-zinc-600 block">
+                    Asst. Professor &amp; Head · Dept. of Transfusion Medicine (Blood Bank)
+                  </span>
+                  <span className="text-[11px] text-zinc-500 block">
+                    M Abdur Rahim Medical College Hospital, Dinajpur
+                  </span>
                 </div>
               </figcaption>
             </figure>
@@ -1081,8 +1098,19 @@ const Home = () => {
                     </div>
                     <p className="text-sm leading-relaxed text-zinc-700 italic">“{rev.text}”</p>
                     <div className="pt-2 border-t border-zinc-100 flex items-center justify-between text-xs">
-                      <span className="font-bold text-zinc-900">{rev.name}</span>
-                      <span className="text-zinc-400">{rev.role}</span>
+                      <div className="flex items-center gap-2.5">
+                        {rev.photo && (
+                          <img
+                            src={rev.photo}
+                            alt={rev.name}
+                            className="w-9 h-9 rounded-full object-cover border border-red-200 shadow-xs shrink-0"
+                          />
+                        )}
+                        <div>
+                          <span className="font-bold text-zinc-900 block leading-tight">{rev.name}</span>
+                          <span className="text-zinc-500 text-[11px] block leading-tight">{rev.role}</span>
+                        </div>
+                      </div>
                     </div>
                   </li>
                 ))}
@@ -1101,8 +1129,10 @@ const Home = () => {
                     </div>
                     <p className="text-sm leading-relaxed text-zinc-700 italic">“{rev.text}”</p>
                     <div className="pt-2 border-t border-zinc-100 flex items-center justify-between text-xs">
-                      <span className="font-bold text-zinc-900">{rev.name}</span>
-                      <span className="text-zinc-400">{rev.role}</span>
+                      <div>
+                        <span className="font-bold text-zinc-900 block leading-tight">{rev.name}</span>
+                        <span className="text-zinc-500 text-[11px] block leading-tight">{rev.role}</span>
+                      </div>
                     </div>
                   </li>
                 ))}
@@ -1237,8 +1267,8 @@ const Home = () => {
         <div className="start__inner max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 relative z-10">
           <div className="start__window">
             <img
-              src="https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=1600&q=80"
-              alt="Medical voluntary blood donation clinical procedure"
+              src="/dinajpur/blood-donation-center.jpg"
+              alt="Voluntary blood donation procedure at Dinajpur Blood Transfusion Center"
               loading="lazy"
             />
           </div>
