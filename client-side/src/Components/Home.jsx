@@ -8,6 +8,7 @@ import {
   CheckCircle2, ArrowRight, Activity,
   HeartPulse, Stethoscope, Microscope,
   Sparkles, Quote, MapPin, Users, Phone, Check,
+  User, Zap, AlertTriangle, Droplet,
 } from "lucide-react";
 import { BLOOD_GROUPS } from "../data/hospitals";
 import { API_BASE_URL } from "../config/api";

@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router";
 import CountdownBadge from "./CountdownBadge";
 import { BANGLADESH_HOSPITALS, BLOOD_GROUPS, BANGLADESH_DISTRICTS, BLOOD_COMPATIBILITY } from "../data/hospitals";
 import { API_BASE_URL } from "../config/api";
+import { Button, Badge, Card, Input, Select, TabsList, TabsTrigger } from "./ui";
 import {
   Search,
   Droplet,
@@ -50,7 +51,7 @@ const SearchDonar = () => {
     includeCompatible: false,
   });
 
-  // Sync state if URL query params change (e.g. from navbar, homepage links, or back/forward)
+  // Sync state if URL query params exist on initial mount (pre-fill form only, never auto-search)
   useEffect(() => {
     const g = searchParams.get("group") || "";
     const d = searchParams.get("district") || "";
@@ -58,16 +59,7 @@ const SearchDonar = () => {
     if (g) setSelectedGroup(g);
     if (d) setSelectedDistrict(d);
     if (h) setSelectedHospital(h);
-    if (g || d || h) {
-      setActiveSearch((prev) => ({
-        ...prev,
-        ...(g && { group: g }),
-        ...(d && { district: d }),
-        ...(h && { hospital: h }),
-      }));
-      setHasSearched(true);
-    }
-  }, [searchParams]);
+  }, []);
 
   const handleDistrictBoxClick = (distName) => {
     if (selectedDistrict === distName) {
@@ -113,19 +105,13 @@ const SearchDonar = () => {
     fetchDonorsAndStats();
   }, []);
 
-  // When clicking a blood group box, update selection in the form
+  // When clicking a blood group box, update selection in the form without auto-triggering search
   const handleGroupSelect = (group) => {
     if (selectedGroup === group) {
       setSelectedGroup("");
       setIncludeCompatible(false);
-      const nextParams = new URLSearchParams(searchParams);
-      nextParams.delete("group");
-      setSearchParams(nextParams);
     } else {
       setSelectedGroup(group);
-      const nextParams = new URLSearchParams(searchParams);
-      nextParams.set("group", group);
-      setSearchParams(nextParams);
     }
   };
 
@@ -447,83 +433,6 @@ const SearchDonar = () => {
               );
             })}
           </div>
-
-          {/* Blood Compatibility Guide for selected blood group */}
-          {selectedGroup && BLOOD_COMPATIBILITY[selectedGroup] && (
-            <div className="pt-2 border-t border-zinc-100 space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-red-600" />
-                  Antigenic Compatibility &amp; Replacement Matrix for {selectedGroup}
-                </span>
-                <span className="text-[11px] text-zinc-500">
-                  What types can safely donate or receive in replacement of <strong>{selectedGroup}</strong>
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Can Donate To */}
-                <div className="bg-red-50/40 border border-red-200/80 rounded-2xl p-4 sm:p-5 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs sm:text-sm font-extrabold text-zinc-900">
-                      <span className="text-red-600 font-black">{selectedGroup}</span> Can Donate Red Cells To:
-                    </span>
-                    <span className="text-[10px] font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded-full">
-                      Recipient Types
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {BLOOD_COMPATIBILITY[selectedGroup].canGiveTo.map((g) => (
-                      <span
-                        key={g}
-                        className="px-3 py-1 rounded-xl font-black text-xs bg-white text-red-800 border border-red-200 shadow-sm"
-                      >
-                        {g}
-                      </span>
-                    ))}
-                  </div>
-                  {BLOOD_COMPATIBILITY[selectedGroup].isUniversalDonor && (
-                    <div className="inline-block px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
-                      Universal Red Cell Donor (Life-saving emergency transfusion)
-                    </div>
-                  )}
-                  <p className="text-[11px] text-zinc-500">
-                    A donor with <strong>{selectedGroup}</strong> can be transfused to any of the above patient blood groups.
-                  </p>
-                </div>
-
-                {/* Can Receive From */}
-                <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-4 sm:p-5 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs sm:text-sm font-extrabold text-zinc-900">
-                      Patient Needing <span className="text-red-600 font-black">{selectedGroup}</span> Can Receive From:
-                    </span>
-                    <span className="text-[10px] font-bold text-zinc-700 bg-zinc-200 px-2 py-0.5 rounded-full">
-                      Compatible Donors
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {BLOOD_COMPATIBILITY[selectedGroup].canReceiveFrom.map((g) => (
-                      <span
-                        key={g}
-                        className="px-3 py-1 rounded-xl font-black text-xs bg-white text-zinc-900 border border-zinc-300 shadow-sm"
-                      >
-                        {g}
-                      </span>
-                    ))}
-                  </div>
-                  {BLOOD_COMPATIBILITY[selectedGroup].isUniversalRecipient && (
-                    <div className="inline-block px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-100 text-blue-900 border border-blue-300">
-                      Universal Recipient (Can safely accept red cells from all groups)
-                    </div>
-                  )}
-                  <p className="text-[11px] text-zinc-500">
-                    When someone needs <strong>{selectedGroup}</strong> blood, voluntary donors of these groups can safely replace or match it.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* 2. SEARCH FORM (EMERGENCY BLOOD DONOR STYLE: DISTRICT -> CITY -> AREA / HOSPITAL) */}
@@ -983,6 +892,77 @@ const SearchDonar = () => {
                   </button>
                 </div>
               </div>
+
+              {/* Blood Compatibility Guide (Only shown in search results when a blood group is queried) */}
+              {activeSearch.group && BLOOD_COMPATIBILITY[activeSearch.group] && (
+                <div className="bg-white border border-zinc-200 rounded-3xl p-5 shadow-xs space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-3 border-b border-zinc-100">
+                    <span className="text-xs font-bold text-zinc-700 uppercase tracking-wider flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-red-600" />
+                      Antigenic Compatibility &amp; Replacement for Group {activeSearch.group}
+                    </span>
+                    <span className="text-[11px] text-zinc-500">
+                      Safe emergency match options for <strong>{activeSearch.group}</strong>
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Can Donate To */}
+                    <div className="bg-red-50/40 border border-red-200/80 rounded-2xl p-4 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-extrabold text-zinc-900">
+                          <span className="text-red-600 font-black">{activeSearch.group}</span> Can Donate Red Cells To:
+                        </span>
+                        <span className="text-[10px] font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded-full">
+                          Recipient Types
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {BLOOD_COMPATIBILITY[activeSearch.group].canGiveTo.map((g) => (
+                          <span
+                            key={g}
+                            className="px-2.5 py-0.5 rounded-lg font-black text-xs bg-white text-red-800 border border-red-200 shadow-2xs"
+                          >
+                            {g}
+                          </span>
+                        ))}
+                      </div>
+                      {BLOOD_COMPATIBILITY[activeSearch.group].isUniversalDonor && (
+                        <div className="inline-block px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
+                          Universal Red Cell Donor (Life-saving emergency transfusion)
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Can Receive From */}
+                    <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-4 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-extrabold text-zinc-900">
+                          Patient Needing <span className="text-red-600 font-black">{activeSearch.group}</span> Can Receive From:
+                        </span>
+                        <span className="text-[10px] font-bold text-zinc-700 bg-zinc-200 px-2 py-0.5 rounded-full">
+                          Compatible Donors
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {BLOOD_COMPATIBILITY[activeSearch.group].canReceiveFrom.map((g) => (
+                          <span
+                            key={g}
+                            className="px-2.5 py-0.5 rounded-lg font-black text-xs bg-white text-zinc-900 border border-zinc-300 shadow-2xs"
+                          >
+                            {g}
+                          </span>
+                        ))}
+                      </div>
+                      {BLOOD_COMPATIBILITY[activeSearch.group].isUniversalRecipient && (
+                        <div className="inline-block px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-blue-100 text-blue-900 border border-blue-300">
+                          Universal Recipient (Can accept red cells from all groups)
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Proximity / Fallback Notice */}
               {fallbackUsed && fallbackNote && (
