@@ -451,14 +451,14 @@ const DonarForm = () => {
 
             {/* Previous Blood Donation History (User Request) */}
             <div className="mt-4 pt-4 border-t border-red-200/60">
-              <label className="cursor-pointer label p-3.5 bg-white rounded-lg border border-red-200 flex items-center justify-between gap-3 mb-3">
-                <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                  <History className="w-5 h-5 text-red-600 shrink-0" />
-                  <div className="min-w-0">
-                    <span className="font-bold text-xs sm:text-sm text-zinc-900 block truncate">
+              <label className="cursor-pointer label p-3.5 bg-white rounded-lg border border-red-200 flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2.5">
+                  <History className="w-5 h-5 text-red-600" />
+                  <div>
+                    <span className="font-bold text-sm text-zinc-900 block">
                       Have you donated blood before?
                     </span>
-                    <span className="text-[11px] sm:text-xs text-zinc-500 block leading-tight">
+                    <span className="text-xs text-zinc-500">
                       Check this if you have previously donated whole blood or platelets.
                     </span>
                   </div>
@@ -468,7 +468,7 @@ const DonarForm = () => {
                   name="hasDonatedBefore"
                   checked={formData.hasDonatedBefore}
                   onChange={handleInputChange}
-                  className="checkbox checkbox-error shrink-0"
+                  className="checkbox checkbox-error"
                 />
               </label>
 
@@ -910,7 +910,7 @@ const DonarForm = () => {
                     value={formData.hospital}
                     onChange={handleInputChange}
                     required
-                    className="select select-bordered w-full rounded-lg focus:border-red-500 text-xs sm:text-sm truncate max-w-full"
+                    className="select select-bordered w-full rounded-lg focus:border-red-500"
                   >
                     {BANGLADESH_HOSPITALS.map((hosp) => (
                       <option key={hosp.name} value={hosp.name}>
