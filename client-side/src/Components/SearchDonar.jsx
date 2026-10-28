@@ -345,7 +345,7 @@ const SearchDonar = () => {
           {/* Blood Compatibility Guide for selected blood group */}
           {selectedGroup && BLOOD_COMPATIBILITY[selectedGroup] && (
             <div className="pt-2 border-t border-zinc-100 space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                 <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-red-600" />
                   Antigenic Compatibility &amp; Replacement Matrix for {selectedGroup}
@@ -780,11 +780,11 @@ const SearchDonar = () => {
                 </div>
 
                 {/* Availability Filter Segmented Controls */}
-                <div className="flex items-center gap-1.5 bg-zinc-100 p-1 rounded-2xl shrink-0 self-start lg:self-auto">
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 bg-zinc-100 p-1 rounded-2xl w-full sm:w-auto shrink-0 self-start lg:self-auto">
                   <button
                     type="button"
                     onClick={() => setAvailabilityFilter("all")}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    className={`flex-1 sm:flex-none justify-center px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                       availabilityFilter === "all"
                         ? "bg-white text-zinc-950 shadow-xs"
                         : "text-zinc-600 hover:text-zinc-950"
@@ -795,7 +795,7 @@ const SearchDonar = () => {
                   <button
                     type="button"
                     onClick={() => setAvailabilityFilter("ready")}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    className={`flex-1 sm:flex-none justify-center px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
                       availabilityFilter === "ready"
                         ? "bg-white text-emerald-800 shadow-xs"
                         : "text-zinc-600 hover:text-emerald-700"
@@ -807,7 +807,7 @@ const SearchDonar = () => {
                   <button
                     type="button"
                     onClick={() => setAvailabilityFilter("cooldown")}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    className={`flex-1 sm:flex-none justify-center px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
                       availabilityFilter === "cooldown"
                         ? "bg-white text-amber-900 shadow-xs"
                         : "text-zinc-600 hover:text-amber-800"

@@ -208,9 +208,9 @@ const Home = () => {
         if (words.length) {
           gsap.fromTo(
             words,
-            { color: "rgba(255, 255, 255, 0.22)" },
+            { color: "rgba(24, 24, 27, 0.22)" },
             {
-              color: "#ffffff",
+              color: "#09090b",
               stagger: 0.12,
               ease: "none",
               scrollTrigger: {
@@ -311,44 +311,49 @@ const Home = () => {
         const device = callsRoot.querySelector(".calls__device");
         const steps = items.map((_, i) => [...callsRoot.querySelectorAll(`.phone [data-step="${i + 1}"]`)]);
 
-        const line = isWide ? "58%" : "52%";
-        const callsTL = gsap.timeline({
-          defaults: { ease: "none" },
-          scrollTrigger: {
-            id: "calls:steps",
-            trigger: items[0],
-            start: `top ${line}`,
-            endTrigger: items[items.length - 1],
-            end: `bottom ${line}`,
-            scrub: true,
-          },
-        });
+        if (isWide) {
+          const line = "58%";
+          const callsTL = gsap.timeline({
+            defaults: { ease: "none" },
+            scrollTrigger: {
+              id: "calls:steps",
+              trigger: items[0],
+              start: `top ${line}`,
+              endTrigger: items[items.length - 1],
+              end: `bottom ${line}`,
+              scrub: true,
+            },
+          });
 
-        items.forEach((item, i) => {
-          if (i > 0) callsTL.fromTo(item, { opacity: 0.28 }, { opacity: 1, duration: 0.25 }, i - 0.1);
-          if (i < items.length - 1) callsTL.to(item, { opacity: 0.28, duration: 0.25 }, i + 0.9);
-          if (steps[i].length) {
-            callsTL.from(
-              steps[i],
-              { opacity: 0, y: 14, scale: 0.92, transformOrigin: "50% 100%", duration: 0.3, stagger: 0.18, ease: "power2.out" },
-              i + 0.05
-            );
-          }
-        });
-        callsTL.to(items.slice(0, -1), { opacity: 1, duration: 0.3 }, items.length - 0.1);
+          items.forEach((item, i) => {
+            if (i > 0) callsTL.fromTo(item, { opacity: 0.28 }, { opacity: 1, duration: 0.25 }, i - 0.1);
+            if (i < items.length - 1) callsTL.to(item, { opacity: 0.28, duration: 0.25 }, i + 0.9);
+            if (steps[i].length) {
+              callsTL.from(
+                steps[i],
+                { opacity: 0, y: 14, scale: 0.92, transformOrigin: "50% 100%", duration: 0.3, stagger: 0.18, ease: "power2.out" },
+                i + 0.05
+              );
+            }
+          });
+          callsTL.to(items.slice(0, -1), { opacity: 1, duration: 0.3 }, items.length - 0.1);
 
-        // Exit tilt & scale down
-        gsap.timeline({
-          defaults: { ease: "none" },
-          scrollTrigger: {
-            id: "calls:exit",
-            trigger: callsRoot,
-            start: "bottom bottom",
-            end: "bottom 30%",
-            scrub: true,
-            invalidateOnRefresh: true,
-          },
-        }).to(device, { scale: 0.82, rotation: -6, y: () => -window.innerHeight * (isWide ? 0.12 : 0.08) }, 0);
+          // Exit tilt & scale down
+          gsap.timeline({
+            defaults: { ease: "none" },
+            scrollTrigger: {
+              id: "calls:exit",
+              trigger: callsRoot,
+              start: "bottom bottom",
+              end: "bottom 30%",
+              scrub: true,
+              invalidateOnRefresh: true,
+            },
+          }).to(device, { scale: 0.82, rotation: -6, y: () => -window.innerHeight * 0.12 }, 0);
+        } else {
+          items.forEach((item) => gsap.set(item, { opacity: 1 }));
+          steps.flat().forEach((step) => gsap.set(step, { opacity: 1, y: 0, scale: 1 }));
+        }
       }
 
       // ─── Scene 5: Live Interactive Parameter Console (scene:tune) ─
