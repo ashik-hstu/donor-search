@@ -34,18 +34,14 @@ const SearchDonar = () => {
   const [selectedCity, setSelectedCity] = useState("");
   const [searchArea, setSearchArea] = useState("");
   const [selectedHospital, setSelectedHospital] = useState("");
+  const [availabilityFilter, setAvailabilityFilter] = useState("all"); // 'all' | 'ready' | 'cooldown'
+  const [includeCompatible, setIncludeCompatible] = useState(false);
 
-  // ONLY show donor profiles AFTER the user actively clicks "Search Donors"
-  const [hasSearched, setHasSearched] = useState(false);
-
-  // Executed search criteria (frozen when user clicks Search)
-  const [activeSearch, setActiveSearch] = useState({
-    group: "",
-    district: "",
-    city: "",
-    area: "",
-    hospital: "",
-  });
+  // Sync state if URL query params change (e.g. from navbar, homepage links, or back/forward)
+  useEffect(() => {
+    const g = searchParams.get("group") || "";
+    setSelectedGroup(g);
+  }, [searchParams]);
 
   const handleDistrictBoxClick = (distName) => {
     if (selectedDistrict === distName) {
@@ -91,34 +87,26 @@ const SearchDonar = () => {
     fetchDonorsAndStats();
   }, []);
 
-  // When clicking a blood group box, ONLY select that blood group in the form
-  // DO NOT show donor profiles yet until user clicks "Search Donors"
+  // When clicking a blood group box, update selection and URL query params
   const handleGroupSelect = (group) => {
     if (selectedGroup === group) {
       setSelectedGroup("");
-      searchParams.delete("group");
-      setSearchParams(searchParams);
+      setIncludeCompatible(false);
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete("group");
+      setSearchParams(nextParams);
     } else {
       setSelectedGroup(group);
-      searchParams.set("group", group);
-      setSearchParams(searchParams);
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.set("group", group);
+      setSearchParams(nextParams);
     }
-    // Note: hasSearched is NOT set to true here!
-    // The user must click the "Search Donors" button to trigger profile rendering.
   };
 
-  // Trigger search ONLY on form submit / clicking "Search Donors"
+  // Trigger smooth scroll down to results section on form submit / clicking "Search Donors"
   const handleSearchSubmit = (e) => {
     if (e) e.preventDefault();
-
-    setActiveSearch({
-      group: selectedGroup,
-      district: selectedDistrict,
-      city: selectedCity,
-      area: searchArea.trim(),
-      hospital: selectedHospital,
-    });
-    setHasSearched(true);
+    document.getElementById("donor-results")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   // Clear search and reset back to clean state
@@ -128,88 +116,90 @@ const SearchDonar = () => {
     setSelectedCity("");
     setSearchArea("");
     setSelectedHospital("");
-    setHasSearched(false);
-    setActiveSearch({
-      group: "",
-      district: "",
-      city: "",
-      area: "",
-      hospital: "",
-    });
-    searchParams.delete("group");
-    setSearchParams(searchParams);
+    setAvailabilityFilter("all");
+    setIncludeCompatible(false);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("group");
+    setSearchParams(nextParams);
   };
 
-  // Intelligent Search Matching Algorithm with Prioritization:
-  // 1. Blood group match
+  // Intelligent Live Search Matching Algorithm with Prioritization:
+  // 1. Blood group match & Antigenic compatibility support
   // 2. Same District + Same City + Address Area Match + Hospital Match
   // 3. Same District + Same City + Address Area Match
   // 4. Same District + Same City + Hospital Match
   // 5. Same District + Same City
-  // 6. Same District (nearby city fallback)
+  // 6. Same District (nearby city fallback with transparent notice)
   // 7. Hospital vicinity fallback
   const computeSearchResults = () => {
-    if (!hasSearched) return { results: [], fallbackUsed: false };
+    const searchGrp = selectedGroup;
+    const searchDist = (selectedDistrict || "").toLowerCase();
+    const searchCity = (selectedCity || "").toLowerCase();
+    const searchAddr = (searchArea || "").trim().toLowerCase();
+    const searchHosp = (selectedHospital || "").trim().toLowerCase();
 
-    const searchGrp = activeSearch.group;
-    const searchDist = (activeSearch.district || "").toLowerCase();
-    const searchCity = (activeSearch.city || "").toLowerCase();
-    const searchAddr = (activeSearch.area || "").toLowerCase();
-    const searchHosp = activeSearch.hospital;
+    // 1. Filter by Blood Group or Compatibility
+    let groupFiltered = donors;
+    if (searchGrp) {
+      if (includeCompatible && BLOOD_COMPATIBILITY[searchGrp]?.canReceiveFrom) {
+        const compTypes = BLOOD_COMPATIBILITY[searchGrp].canReceiveFrom;
+        groupFiltered = donors.filter((d) => compTypes.includes(d.group));
+      } else {
+        groupFiltered = donors.filter((d) => d.group === searchGrp);
+      }
+    }
 
-    const hospitalObj = BANGLADESH_HOSPITALS.find((h) => h.name === searchHosp);
+    const hospitalObj = BANGLADESH_HOSPITALS.find((h) => h.name === selectedHospital);
     const hospDistrict = (hospitalObj?.district || "").toLowerCase();
     const hospArea = (hospitalObj?.area || "").toLowerCase();
-
-    // 1. Filter by Blood Group first (if selected)
-    const groupMatches = donors.filter((d) => {
-      if (searchGrp && d.group !== searchGrp) return false;
-      return true;
-    });
 
     const tier1 = []; // Same District + Same City + Area Match + Hospital Match
     const tier2 = []; // Same District + Same City + Area Match
     const tier3 = []; // Same District + Same City + Hospital Match
     const tier4 = []; // Same District + Same City
-    const tier5 = []; // Same District, nearby cities
+    const tier5 = []; // Same District, nearby cities in district (fallback)
     const tier6 = []; // Hospital match anywhere
 
-    groupMatches.forEach((donor) => {
+    groupFiltered.forEach((donor) => {
       const donorLoc = (donor.location || "").toLowerCase();
       const donorDist = (donor.district || "").toLowerCase();
       const donorCity = (donor.city || "").toLowerCase();
       const donorHosp = (donor.hospital || "").toLowerCase();
 
       const distMatches = searchDist ? donorDist === searchDist || donorLoc.includes(searchDist) : true;
-      const cityMatches = searchCity ? donorCity === searchCity || donorLoc.includes(searchCity) : true;
-      const addrMatches = searchAddr ? donorLoc.includes(searchAddr) : false;
+      const cityMatches = searchCity ? donorCity === searchCity || donorLoc.includes(searchCity) || donorHosp.includes(searchCity) : true;
+      const addrMatches = searchAddr ? donorLoc.includes(searchAddr) || donorHosp.includes(searchAddr) : false;
       const hospMatches = searchHosp
-        ? donorHosp.includes(searchHosp.toLowerCase()) ||
+        ? donorHosp.includes(searchHosp) ||
           (hospDistrict && (donorLoc.includes(hospDistrict) || donorDist.includes(hospDistrict))) ||
           (hospArea && donorLoc.includes(hospArea))
         : false;
 
       if (distMatches && cityMatches) {
         if (searchAddr && addrMatches && searchHosp && hospMatches) {
-          tier1.push({ ...donor, matchType: `Exact Area & Hospital Match in ${donor.city || activeSearch.city}` });
+          tier1.push({ ...donor, matchType: `Exact Area & Hospital Match in ${donor.city || selectedCity}` });
         } else if (searchAddr && addrMatches) {
-          tier2.push({ ...donor, matchType: `Exact Area Match in ${donor.city || activeSearch.city}` });
+          tier2.push({ ...donor, matchType: `Exact Area Match in ${donor.city || selectedCity}` });
         } else if (searchHosp && hospMatches) {
-          tier3.push({ ...donor, matchType: `Hospital Vicinity Match (${donor.hospital || searchHosp})` });
+          tier3.push({ ...donor, matchType: `Hospital Vicinity Match (${donor.hospital || selectedHospital})` });
+        } else if (searchCity) {
+          tier4.push({ ...donor, matchType: `City Match in ${donor.city || selectedCity}` });
+        } else if (searchDist) {
+          tier4.push({ ...donor, matchType: `District Match in ${donor.district || selectedDistrict}` });
         } else {
-          tier4.push({ ...donor, matchType: `City Match in ${donor.city || activeSearch.city}` });
+          tier4.push({ ...donor, matchType: searchGrp ? `Blood Group ${donor.group} Match` : "Verified Volunteer" });
         }
-      } else if (distMatches) {
-        tier5.push({ ...donor, matchType: `District Match (${donor.district || activeSearch.district})` });
+      } else if (distMatches && searchCity) {
+        // District matched, but specified city has no donors; this donor is in another city of same district
+        tier5.push({ ...donor, matchType: `Nearby City Match in ${donor.city || donor.district}` });
       } else if (searchHosp && hospMatches) {
-        tier6.push({ ...donor, matchType: `Hospital Match (${searchHosp})` });
-      } else if (!searchDist && !searchCity && !searchAddr && !searchHosp) {
-        tier4.push({ ...donor, matchType: `Blood Group ${donor.group} Match` });
+        tier6.push({ ...donor, matchType: `Hospital Match (${selectedHospital})` });
       }
     });
 
     let combined = [];
     let fallbackUsed = false;
+    let fallbackNote = "";
 
     if (tier1.length > 0 || tier2.length > 0) {
       combined = [...tier1, ...tier2];
@@ -223,15 +213,41 @@ const SearchDonar = () => {
     } else if (tier5.length > 0) {
       combined = tier5;
       fallbackUsed = true;
+      fallbackNote = `No direct matches in "${selectedCity}", but matched ${tier5.length} nearby volunteer${tier5.length > 1 ? "s" : ""} in other cities of ${selectedDistrict} District.`;
     } else if (tier6.length > 0) {
       combined = tier6;
       fallbackUsed = true;
+      fallbackNote = `Hospital vicinity match applied for "${selectedHospital}".`;
     }
 
-    return { results: combined, fallbackUsed };
+    // Availability breakdown for tabs:
+    const counts = {
+      all: combined.length,
+      ready: combined.filter((d) => d.isAvailable).length,
+      cooldown: combined.filter((d) => !d.isAvailable).length,
+    };
+
+    // Apply availabilityFilter
+    let finalResults = combined;
+    if (availabilityFilter === "ready") {
+      finalResults = combined.filter((d) => d.isAvailable);
+    } else if (availabilityFilter === "cooldown") {
+      finalResults = combined.filter((d) => !d.isAvailable);
+    }
+
+    return { results: finalResults, counts, fallbackUsed, fallbackNote };
   };
 
-  const { results: relevantDonors, fallbackUsed } = computeSearchResults();
+  const { results: relevantDonors, counts, fallbackUsed, fallbackNote } = computeSearchResults();
+  const hasActiveFilters = Boolean(
+    selectedGroup ||
+    selectedDistrict ||
+    selectedCity ||
+    searchArea ||
+    selectedHospital ||
+    availabilityFilter !== "all" ||
+    includeCompatible
+  );
 
   return (
     <div className="min-h-screen bg-slate-50/60 py-8 px-4 sm:px-6 lg:px-8">
@@ -416,7 +432,7 @@ const SearchDonar = () => {
                 2. Regional &amp; Vicinity Search (Emergency Style)
               </h2>
             </div>
-            {hasSearched && (
+            {hasActiveFilters && (
               <button
                 type="button"
                 onClick={handleClearSearch}
@@ -449,6 +465,7 @@ const SearchDonar = () => {
               {BANGLADESH_DISTRICTS.map((dist) => {
                 const isSelected = selectedDistrict === dist.name;
                 const distDonorsCount = donors.filter((d) => {
+                  if (selectedGroup && d.group !== selectedGroup) return false;
                   const dDist = (d.district || "").toLowerCase();
                   const dLoc = (d.location || "").toLowerCase();
                   const target = dist.name.toLowerCase();
@@ -515,6 +532,7 @@ const SearchDonar = () => {
                   (cityName) => {
                     const isCitySelected = selectedCity === cityName;
                     const cCount = donors.filter((d) => {
+                      if (selectedGroup && d.group !== selectedGroup) return false;
                       const dDist = (d.district || "").toLowerCase();
                       const dCity = (d.city || "").toLowerCase();
                       const dLoc = (d.location || "").toLowerCase();
@@ -620,7 +638,7 @@ const SearchDonar = () => {
           {/* Action & Scope Bar */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-zinc-100">
             <div className="text-xs text-zinc-500 flex flex-wrap items-center gap-2">
-              <span className="font-semibold text-zinc-700">Search scope:</span>
+              <span className="font-semibold text-zinc-700">Live filters:</span>
               <span className="bg-red-50 text-red-700 border border-red-200 px-2.5 py-0.5 rounded-full font-bold">
                 {selectedGroup ? `Blood: ${selectedGroup}` : "All Blood Groups"}
               </span>
@@ -628,12 +646,17 @@ const SearchDonar = () => {
               <span className="font-bold text-zinc-900 bg-zinc-100 px-2.5 py-0.5 rounded-full">
                 {selectedDistrict ? (selectedCity ? `${selectedDistrict} > ${selectedCity}` : selectedDistrict) : "All Districts"}
               </span>
-              {searchArea && <span>• Area: {searchArea}</span>}
+              {searchArea && <span>• Area: "{searchArea}"</span>}
               {selectedHospital && <span>• Hospital: {selectedHospital}</span>}
+              {includeCompatible && (
+                <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-full font-bold">
+                  Compatible Types Included
+                </span>
+              )}
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              {(hasSearched || selectedDistrict || selectedCity || selectedGroup || searchArea || selectedHospital) && (
+              {(selectedDistrict || selectedCity || selectedGroup || searchArea || selectedHospital || availabilityFilter !== "all" || includeCompatible) && (
                 <button
                   type="button"
                   onClick={handleClearSearch}
@@ -647,293 +670,396 @@ const SearchDonar = () => {
                 className="btn-roktika !min-h-0 !py-3 !px-6 !text-xs sm:!text-sm w-full sm:w-auto"
               >
                 <Search className="w-4 h-4 shrink-0" />
-                <span className="btn-label">Search Donors</span>
+                <span className="btn-label">View Results ({relevantDonors.length})</span>
                 <span className="btn-wave" aria-hidden="true"><i/><i/><i/></span>
               </button>
             </div>
           </div>
         </form>
 
-        {/* RESULTS SECTION: BEFORE SEARCH = NOTHING / PROMPT; AFTER SEARCH = RELEVANT DONORS ONLY */}
-        {loading ? (
-          <div className="py-20 text-center">
-            <span className="loading loading-spinner loading-lg text-red-600"></span>
-            <p className="text-xs text-zinc-400 mt-2">Connecting to verified donor registry...</p>
-          </div>
-        ) : !hasSearched ? (
-          /* BEFORE SEARCH: ZERO PROFILES SHOWN! */
-          <div className="bg-white rounded-3xl border border-dashed border-zinc-300 p-12 sm:p-16 text-center max-w-xl mx-auto">
-            <div className="w-16 h-16 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
-              <Search className="w-8 h-8" />
+        {/* RESULTS SECTION: LIVE MATCHING DONORS */}
+        <div id="donor-results" className="space-y-6 pt-2">
+          {loading ? (
+            <div className="py-20 text-center bg-white rounded-3xl border border-zinc-200">
+              <span className="loading loading-spinner loading-lg text-red-600"></span>
+              <p className="text-xs text-zinc-400 mt-2">Connecting to verified donor registry...</p>
             </div>
-            <h3 className="text-lg font-black text-zinc-900">Ready to Find Blood Donors</h3>
-            <p className="text-xs sm:text-sm text-zinc-500 mt-2 leading-relaxed">
-              No donor information is shown until you search. Select your <strong>Blood Group</strong> above, enter your <strong>Address Area</strong> or <strong>Nearby Hospital</strong>, and click <strong>"Search Donors"</strong>.
-            </p>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedGroup("O+");
-                  setActiveSearch({
-                    group: "O+",
-                    district: "",
-                    city: "",
-                    area: "",
-                    hospital: "",
-                  });
-                  setHasSearched(true);
-                }}
-                className="btn btn-sm btn-outline border-red-200 text-red-700 hover:bg-red-600 hover:text-white rounded-full text-xs font-bold px-4"
-              >
-                Try Search: All O+ Donors Nationwide
-              </button>
-            </div>
-          </div>
-        ) : (
-          /* AFTER SEARCH: SHOW RELEVANT DONORS ONLY (BOTH AVAILABLE AND ON COOLDOWN) */
-          <div className="space-y-6">
-            {/* Search Summary Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-zinc-200">
-              <div className="flex items-center gap-2 flex-wrap text-sm">
-                <span className="font-bold text-zinc-900">
-                  Search Results: {relevantDonors.length} matching donor{relevantDonors.length !== 1 ? "s" : ""}
-                </span>
-                {activeSearch.group && (
-                  <span className="bg-red-600 text-white font-extrabold text-xs px-2.5 py-0.5 rounded-full">
-                    Group: {activeSearch.group}
-                  </span>
-                )}
-                {activeSearch.district && (
-                  <span className="bg-zinc-900 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                    {activeSearch.city ? `${activeSearch.district} > ${activeSearch.city}` : activeSearch.district}
-                  </span>
-                )}
-                {activeSearch.area && (
-                  <span className="border border-zinc-300 text-zinc-700 text-xs px-2.5 py-0.5 rounded-full">
-                    Area: {activeSearch.area}
-                  </span>
-                )}
-                {activeSearch.hospital && (
-                  <span className="border border-blue-200 text-blue-700 bg-blue-50 text-xs px-2.5 py-0.5 rounded-full truncate max-w-[220px]">
-                    Hospital: {activeSearch.hospital}
-                  </span>
-                )}
-              </div>
+          ) : (
+            <>
+              {/* Search Summary Header */}
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 rounded-3xl border border-zinc-200 shadow-xs">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-base font-extrabold text-zinc-900">
+                      Search Results: <span className="text-red-600 font-black">{relevantDonors.length}</span> matching donor{relevantDonors.length !== 1 ? "s" : ""}
+                    </h3>
+                  </div>
 
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-zinc-500">
-                  {relevantDonors.filter((d) => d.isAvailable).length} Ready •{" "}
-                  {relevantDonors.filter((d) => !d.isAvailable).length} On Cooldown
-                </span>
-                <button
-                  type="button"
-                  onClick={handleClearSearch}
-                  className="btn btn-xs btn-ghost text-red-600 hover:bg-red-50 text-xs font-bold rounded-full px-3"
-                >
-                  Clear Results
-                </button>
-              </div>
-            </div>
+                  {/* Active Filter Chips */}
+                  <div className="flex items-center gap-2 flex-wrap text-xs">
+                    {selectedGroup && (
+                      <span className="inline-flex items-center gap-1.5 bg-red-600 text-white font-extrabold px-3 py-1 rounded-full shadow-xs">
+                        Group: {selectedGroup}
+                        <button
+                          type="button"
+                          onClick={() => handleGroupSelect(selectedGroup)}
+                          className="hover:opacity-75 focus:outline-hidden"
+                          title="Remove blood group filter"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </span>
+                    )}
 
-            {/* HOSPITAL FALLBACK NOTICE IF AREA HAD NO DONORS BUT HOSPITAL DID */}
-            {fallbackUsed && (
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl flex items-start gap-3 text-xs text-blue-900">
-                <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold block">Hospital Proximity Match Applied:</span>
-                  No donors were listed directly in <em>"{activeSearch.location}"</em>, but we successfully matched nearby donors located in the vicinity of{" "}
-                  <strong>{activeSearch.hospital}</strong>.
+                    {selectedDistrict && (
+                      <span className="inline-flex items-center gap-1.5 bg-zinc-900 text-white font-semibold px-3 py-1 rounded-full shadow-xs">
+                        {selectedCity ? `${selectedDistrict} > ${selectedCity}` : `District: ${selectedDistrict}`}
+                        <button
+                          type="button"
+                          onClick={() => { setSelectedDistrict(""); setSelectedCity(""); }}
+                          className="hover:opacity-75 focus:outline-hidden"
+                          title="Remove district filter"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </span>
+                    )}
+
+                    {selectedCity && (
+                      <span className="inline-flex items-center gap-1.5 bg-zinc-100 text-zinc-800 font-bold px-3 py-1 rounded-full border border-zinc-300">
+                        City: {selectedCity}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedCity("")}
+                          className="hover:text-red-600 focus:outline-hidden"
+                          title="Remove city filter"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </span>
+                    )}
+
+                    {searchArea && (
+                      <span className="inline-flex items-center gap-1.5 border border-zinc-300 text-zinc-700 px-3 py-1 rounded-full">
+                        Area: "{searchArea}"
+                        <button
+                          type="button"
+                          onClick={() => setSearchArea("")}
+                          className="hover:text-red-600 focus:outline-hidden"
+                          title="Clear area filter"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </span>
+                    )}
+
+                    {selectedHospital && (
+                      <span className="inline-flex items-center gap-1.5 border border-blue-200 text-blue-700 bg-blue-50 px-3 py-1 rounded-full truncate max-w-[240px]">
+                        Hospital: {selectedHospital}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedHospital("")}
+                          className="hover:text-blue-900 focus:outline-hidden shrink-0"
+                          title="Clear hospital filter"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </span>
+                    )}
+
+                    {(selectedGroup || selectedDistrict || selectedCity || searchArea || selectedHospital || availabilityFilter !== "all" || includeCompatible) && (
+                      <button
+                        type="button"
+                        onClick={handleClearSearch}
+                        className="text-xs text-red-600 hover:text-red-800 hover:underline font-bold ml-1"
+                      >
+                        Reset All Filters
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Availability Filter Segmented Controls */}
+                <div className="flex items-center gap-1.5 bg-zinc-100 p-1 rounded-2xl shrink-0 self-start lg:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setAvailabilityFilter("all")}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      availabilityFilter === "all"
+                        ? "bg-white text-zinc-950 shadow-xs"
+                        : "text-zinc-600 hover:text-zinc-950"
+                    }`}
+                  >
+                    All ({counts.all})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAvailabilityFilter("ready")}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      availabilityFilter === "ready"
+                        ? "bg-white text-emerald-800 shadow-xs"
+                        : "text-zinc-600 hover:text-emerald-700"
+                    }`}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+                    Ready Now ({counts.ready})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAvailabilityFilter("cooldown")}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      availabilityFilter === "cooldown"
+                        ? "bg-white text-amber-900 shadow-xs"
+                        : "text-zinc-600 hover:text-amber-800"
+                    }`}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                    On Cooldown ({counts.cooldown})
+                  </button>
                 </div>
               </div>
-            )}
 
-            {/* Zero matching results */}
-            {relevantDonors.length === 0 ? (
-              <div className="bg-white rounded-3xl border border-zinc-200 p-12 text-center max-w-md mx-auto">
-                <Droplet className="w-12 h-12 text-zinc-300 mx-auto mb-3" />
-                <h4 className="text-base font-bold text-zinc-900">No Matching Donors Found</h4>
-                <p className="text-xs text-zinc-500 mt-1">
-                  No verified donors matched this blood group and location. Try selecting a nearby government hospital to find regional donors.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleClearSearch}
-                  className="btn btn-sm btn-outline btn-error mt-4 rounded-full text-xs font-bold px-4"
-                >
-                  Reset Search
-                </button>
-              </div>
-            ) : (
-              /* RELEVANT DONORS CARDS GRID (BOTH AVAILABLE & NOT AVAILABLE) */
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {relevantDonors.map((donor) => (
-                  <div
-                    key={donor._id}
-                    className="bg-white rounded-2xl border border-zinc-200 hover:border-zinc-300 transition-colors duration-150 overflow-hidden flex flex-col justify-between"
-                  >
-                    <div className="p-5">
-                      {/* Match Badge Tag */}
-                      {donor.matchType && (
-                        <div className="mb-2">
-                          <span
-                            className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                              donor.matchType.includes("Exact")
-                                ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                                : donor.matchType.includes("Hospital")
-                                ? "bg-blue-50 text-blue-800 border border-blue-200"
-                                : "bg-red-50 text-red-700 border border-red-200"
-                            }`}
-                          >
-                            {donor.matchType}
-                          </span>
-                        </div>
-                      )}
+              {/* Proximity / Fallback Notice */}
+              {fallbackUsed && fallbackNote && (
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl flex items-start gap-3 text-xs text-blue-900">
+                  <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold block mb-0.5">Regional Vicinity Match Applied:</span>
+                    <span>{fallbackNote}</span>
+                  </div>
+                </div>
+              )}
 
-                      {/* Top Header & Photo */}
-                      <div className="flex items-start justify-between gap-3 mb-3">
-                        <div className="flex items-center gap-3">
-                          {/* Donor Photo or Blood Badge */}
-                          <div className="relative">
-                            {donor.photo ? (
-                              <img
-                                src={donor.photo}
-                                alt={donor.name}
-                                className="w-12 h-12 rounded-lg object-cover border border-zinc-200"
-                              />
-                            ) : (
-                              <div
-                                className="w-12 h-12 rounded-lg bg-red-600 text-white font-extrabold text-lg flex items-center justify-center notranslate"
+              {/* Zero matching results */}
+              {relevantDonors.length === 0 ? (
+                <div className="bg-white rounded-3xl border border-dashed border-zinc-300 p-12 text-center max-w-lg mx-auto space-y-4">
+                  <div className="w-14 h-14 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto">
+                    <Droplet className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-zinc-900">
+                      No Matching Donors Found
+                    </h4>
+                    <p className="text-xs text-zinc-500 mt-1 max-w-md mx-auto">
+                      {selectedGroup
+                        ? `No verified ${selectedGroup} donors found matching your exact location criteria.`
+                        : "No verified donors matched your current filter criteria."}
+                    </p>
+                  </div>
+
+                  {/* Contextual Suggestion Actions */}
+                  <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                    {selectedGroup && BLOOD_COMPATIBILITY[selectedGroup]?.canReceiveFrom && !includeCompatible && (
+                      <button
+                        type="button"
+                        onClick={() => setIncludeCompatible(true)}
+                        className="btn btn-sm bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-bold px-4"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        Show Compatible Groups for {selectedGroup} ({BLOOD_COMPATIBILITY[selectedGroup].canReceiveFrom.join(", ")})
+                      </button>
+                    )}
+
+                    {selectedCity && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCity("")}
+                        className="btn btn-sm btn-outline border-zinc-300 text-zinc-800 rounded-full text-xs font-bold px-4"
+                      >
+                        Search All {selectedDistrict || "Districts"}
+                      </button>
+                    )}
+
+                    {selectedDistrict && (
+                      <button
+                        type="button"
+                        onClick={() => { setSelectedDistrict(""); setSelectedCity(""); }}
+                        className="btn btn-sm btn-outline border-zinc-300 text-zinc-800 rounded-full text-xs font-bold px-4"
+                      >
+                        Search Nationwide
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={handleClearSearch}
+                      className="btn btn-sm btn-ghost text-red-600 rounded-full text-xs font-bold px-4"
+                    >
+                      Reset All Filters
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* RELEVANT DONORS CARDS GRID (BOTH AVAILABLE & NOT AVAILABLE) */
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {relevantDonors.map((donor) => (
+                    <div
+                      key={donor._id}
+                      className="bg-white rounded-2xl border border-zinc-200 hover:border-zinc-300 transition-colors duration-150 overflow-hidden flex flex-col justify-between shadow-xs"
+                    >
+                      <div className="p-5">
+                        {/* Match Badge Tag */}
+                        {donor.matchType && (
+                          <div className="mb-2">
+                            <span
+                              className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                                donor.matchType.includes("Exact")
+                                  ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                                  : donor.matchType.includes("Hospital")
+                                  ? "bg-blue-50 text-blue-800 border border-blue-200"
+                                  : "bg-red-50 text-red-700 border border-red-200"
+                              }`}
+                            >
+                              {donor.matchType}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Top Header & Photo */}
+                        <div className="flex items-start justify-between gap-3 mb-3">
+                          <div className="flex items-center gap-3">
+                            {/* Donor Photo or Blood Badge */}
+                            <div className="relative">
+                              {donor.photo ? (
+                                <img
+                                  src={donor.photo}
+                                  alt={donor.name}
+                                  className="w-12 h-12 rounded-lg object-cover border border-zinc-200"
+                                />
+                              ) : (
+                                <div
+                                  className="w-12 h-12 rounded-lg bg-red-600 text-white font-extrabold text-lg flex items-center justify-center notranslate"
+                                  translate="no"
+                                >
+                                  {donor.group}
+                                </div>
+                              )}
+                              <span
+                                className="absolute -bottom-1 -right-1 bg-zinc-900 text-white text-[9px] font-black px-1.5 py-0.5 rounded notranslate"
                                 translate="no"
                               >
                                 {donor.group}
+                              </span>
+                            </div>
+
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <h4 className="text-sm font-bold text-zinc-900 leading-snug">
+                                  {donor.name}
+                                </h4>
+                                <ShieldCheck
+                                  className="w-4 h-4 text-emerald-600 shrink-0"
+                                  title="Verified Donor Member"
+                                />
                               </div>
-                            )}
-                            <span
-                              className="absolute -bottom-1 -right-1 bg-zinc-900 text-white text-[9px] font-black px-1.5 py-0.5 rounded notranslate"
-                              translate="no"
-                            >
-                              {donor.group}
-                            </span>
-                          </div>
-
-                          <div>
-                            <div className="flex items-center gap-1.5">
-                              <h4 className="text-sm font-bold text-zinc-900 leading-snug">
-                                {donor.name}
-                              </h4>
-                              <ShieldCheck
-                                className="w-4 h-4 text-emerald-600 shrink-0"
-                                title="Verified Donor Member"
-                              />
+                              <span className="text-[11px] text-zinc-500 block">
+                                {donor.age} yrs • {donor.gender}
+                              </span>
                             </div>
-                            <span className="text-[11px] text-zinc-500 block">
-                              {donor.age} yrs • {donor.gender}
+                          </div>
+
+                          {/* Donation Counter Badge */}
+                          <div className="text-right">
+                            <span className="inline-block text-[11px] font-semibold text-zinc-700 bg-zinc-100 border border-zinc-200 px-2 py-0.5 rounded">
+                              {donor.donationCount || 0} Donations
                             </span>
                           </div>
                         </div>
 
-                        {/* Donation Counter Badge */}
-                        <div className="text-right">
-                          <span className="inline-block text-[11px] font-semibold text-zinc-700 bg-zinc-100 border border-zinc-200 px-2 py-0.5 rounded">
-                            {donor.donationCount || 0} Donations
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Location & Hospital */}
-                      <div className="space-y-1.5 text-xs text-zinc-600 mb-3 bg-zinc-50 p-3 rounded-lg border border-zinc-200/70">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-3.5 h-3.5 text-red-600 shrink-0" />
-                          <span className="font-medium text-zinc-800 truncate">
-                            {donor.location || "Location on record"}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Building2 className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
-                          <span className="text-zinc-600 truncate">
-                            {donor.hospital || "Dinajpur Sadar Hospital"}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Medical Clearance Checklist */}
-                      <div className="flex flex-wrap gap-1.5 text-[10px] font-semibold text-zinc-600 mb-3">
-                        <span className="bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                          {donor.medicalRecords?.smoking ? "Smoker" : "Non-Smoker"}
-                        </span>
-                        <span className="bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                          HIV / Hepatitis Clear
-                        </span>
-                        {donor.weight && (
-                          <span className="bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded border border-zinc-200">
-                            {donor.weight} kg
-                          </span>
-                        )}
-                      </div>
-
-                      {/* AVAILABILITY / 3-MONTH COOLDOWN COUNTDOWN */}
-                      <div className="mt-3">
-                        {donor.isAvailable ? (
-                          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 flex items-center justify-between text-xs text-emerald-900">
-                            <span className="font-bold flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0"></span>
-                              Ready to Donate Now
-                            </span>
-                            <span className="bg-emerald-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                              Available
+                        {/* Location & Hospital */}
+                        <div className="space-y-1.5 text-xs text-zinc-600 mb-3 bg-zinc-50 p-3 rounded-lg border border-zinc-200/70">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                            <span className="font-medium text-zinc-800 truncate">
+                              {donor.location || "Location on record"}
                             </span>
                           </div>
-                        ) : (
-                          <div>
-                            <div className="mb-1 text-[11px] font-bold text-amber-800 flex items-center justify-between">
-                              <span>Recently Donated (3-Month Rest)</span>
-                              <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Resting</span>
+                          <div className="flex items-center gap-2">
+                            <Building2 className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+                            <span className="text-zinc-600 truncate">
+                              {donor.hospital || "Dinajpur Sadar Hospital"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Medical Clearance Checklist */}
+                        <div className="flex flex-wrap gap-1.5 text-[10px] font-semibold text-zinc-600 mb-3">
+                          <span className="bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            {donor.medicalRecords?.smoking ? "Smoker" : "Non-Smoker"}
+                          </span>
+                          <span className="bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            HIV / Hepatitis Clear
+                          </span>
+                          {donor.weight && (
+                            <span className="bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded border border-zinc-200">
+                              {donor.weight} kg
+                            </span>
+                          )}
+                        </div>
+
+                        {/* AVAILABILITY / 3-MONTH COOLDOWN COUNTDOWN */}
+                        <div className="mt-3">
+                          {donor.isAvailable ? (
+                            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 flex items-center justify-between text-xs text-emerald-900">
+                              <span className="font-bold flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0"></span>
+                                Ready to Donate Now
+                              </span>
+                              <span className="bg-emerald-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                Available
+                              </span>
                             </div>
-                            <CountdownBadge targetDate={donor.nextEligibleDate} />
-                          </div>
-                        )}
+                          ) : (
+                            <div>
+                              <div className="mb-1 text-[11px] font-bold text-amber-800 flex items-center justify-between">
+                                <span>Recently Donated (3-Month Rest)</span>
+                                <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Resting</span>
+                              </div>
+                              <CountdownBadge targetDate={donor.nextEligibleDate} />
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
 
-                    {/* ACTION BUTTONS (Direct Call, WhatsApp, Email) */}
-                    <div className="p-3.5 bg-zinc-50 border-t border-zinc-200 flex items-center gap-2">
-                      <a
-                        href={`tel:${donor.contact}`}
-                        className="btn btn-sm flex-1 min-w-0 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-bold gap-1.5"
-                      >
-                        <Phone className="w-3.5 h-3.5 shrink-0" />
-                        <span className="truncate">Call {donor.contact}</span>
-                      </a>
-
-                      <a
-                        href={`https://wa.me/88${donor.contact}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn btn-sm btn-outline border-emerald-500 text-emerald-700 hover:bg-emerald-600 hover:text-white rounded-full text-xs font-bold px-3"
-                        title="Chat on WhatsApp"
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                      </a>
-
-                      {donor.email && (
+                      {/* ACTION BUTTONS (Direct Call, WhatsApp, Email) */}
+                      <div className="p-3.5 bg-zinc-50 border-t border-zinc-200 flex items-center gap-2">
                         <a
-                          href={`mailto:${donor.email}?subject=Blood Request for ${donor.group}`}
-                          className="btn btn-sm btn-ghost text-zinc-600 hover:text-red-600 rounded-full px-2.5"
-                          title="Send Email"
+                          href={`tel:${donor.contact}`}
+                          className="btn btn-sm flex-1 min-w-0 bg-red-600 hover:bg-red-700 text-white rounded-full text-xs font-bold gap-1.5"
                         >
-                          <Mail className="w-4 h-4" />
+                          <Phone className="w-3.5 h-3.5 shrink-0" />
+                          <span className="truncate">Call {donor.contact}</span>
                         </a>
-                      )}
+
+                        <a
+                          href={`https://wa.me/88${donor.contact}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn btn-sm btn-outline border-emerald-500 text-emerald-700 hover:bg-emerald-600 hover:text-white rounded-full text-xs font-bold px-3"
+                          title="Chat on WhatsApp"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                        </a>
+
+                        {donor.email && (
+                          <a
+                            href={`mailto:${donor.email}?subject=Blood Request for ${donor.group}`}
+                            className="btn btn-sm btn-ghost text-zinc-600 hover:text-red-600 rounded-full px-2.5"
+                            title="Send Email"
+                          >
+                            <Mail className="w-4 h-4" />
+                          </a>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
